@@ -2,7 +2,7 @@
 
 namespace Web_Parent_Control.Models
 {
-    public class File
+    public class FileModel
     {
         public Guid Id { get; set; } 
         public string FilePath { get; set; }

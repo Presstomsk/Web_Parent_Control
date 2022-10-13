@@ -2,7 +2,7 @@
 
 namespace Web_Parent_Control.Models
 {
-    public class Site
+    public class SiteModel
     {
         public Guid Id { get; set; }
         public string Url { get; set; }
