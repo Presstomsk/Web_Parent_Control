@@ -30,7 +30,7 @@ namespace Web_Parent_Control
         {            
             services.AddControllersWithViews();
             ConfigureDb();
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options => options.LoginPath = "/Home/Start");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -59,7 +59,7 @@ namespace Web_Parent_Control
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=History}/{id?}");
+                    pattern: "{controller=Home}/{action=Start}/{id?}");
             });
         }
 

@@ -89,6 +89,10 @@
         {
             <center><input class="btn-true" type="submit" value="Загрузки" /></center>
         }<br>
+        @using (Html.BeginForm("Downloads", "Home", FormMethod.Get))
+        {
+            <center><input class="btn-true" type="submit" value="Загрузки" /></center>
+        }<br>
     </aside>
 </section>
 

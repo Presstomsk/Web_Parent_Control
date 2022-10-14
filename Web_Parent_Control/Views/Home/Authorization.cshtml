@@ -1,5 +1,39 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
+﻿@using Web_Parent_Control.Controllers
+@{    
 }
+@model string;
+
+<div style="min-height: 600px; display: flex;  align-items: center;  justify-content: center; ">
+       <center>
+        <div style=" min-height: 300px; min-width: 300px; background-color: #EEDDFF; border: 6px solid #7922CC; border-radius: 25px;  display: flex;  align-items: center;  justify-content: center; ">
+            <form asp-controller="Home" asp-action="Authorization" method="post" >       
+                
+                <label style="text-align: center; font-weight: 500;">Авторизация</label><br>
+                <div class="errorMessage" style="color:red;">@ViewBag.Error</div><br>             
+                @Html.Hidden("returnUrl",Model)
+                <ul>                    
+                    <li>
+                        <label for="username">Username</label>
+                        <input type="text" name="username" id="username" placeholder="Username" required autofocus maxlength="20" />
+                    </li><br>
+
+                    <li>
+                        <label for="password">Password</label>
+                        <input type="password" name="password" id="password" placeholder="Password" required maxlength="20" />
+                    </li><br>
+
+                </ul>
+
+                <div class="buttons">
+                    <input type="submit" name="login" value="Вход" /><br>
+                </div>
+                <br>
+                <div style="text-align: center;">
+                    <a href="admin.php?action=registration">Не заргистрированы?</a>
+                </div>
+
+            </form>
+        </div>
+        </center>
+</div>
+

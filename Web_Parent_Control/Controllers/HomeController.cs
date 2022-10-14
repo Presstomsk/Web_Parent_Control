@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -7,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using System.Security.Claims;
 using System.Text.Json;
 using Web_Parent_Control.Connector;
 using Web_Parent_Control.Database;
@@ -23,6 +27,44 @@ namespace Web_Parent_Control.Controllers
         public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;            
+        }
+
+        [HttpGet]
+        public IActionResult Start(string returnUrl) // Вывод формы авторизации
+        {
+            return View("Authorization", returnUrl);
+        }
+
+        [HttpPost]
+        public IActionResult Authorization(string returnUrl, string username, string password) // Авторизация
+        {
+            using (var db = new MainContext())
+            {
+                var user = db.Users.FirstOrDefault(p => p.Login == username && p.Password == password);
+                if (user == null)
+                {
+                    ViewBag.Error = "Данного пользователя не существует";
+                    return View();
+                }
+                var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Login) };
+                var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
+                HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+                return Redirect(returnUrl ?? "~/Home/History");
+            }
+        }
+
+        [HttpPost]
+        public IActionResult Logout()
+        {
+            using (var db = new MainContext())
+            {
+                var allSites = db.Sites.AsNoTracking();
+                db.Remove(allSites);
+                db.SaveChangesAsync();
+            }
+
+            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return View("Authorization");
         }
 
         [NonAction]
@@ -47,8 +89,8 @@ namespace Web_Parent_Control.Controllers
                        
         }
 
-        [HttpGet]
-        public IActionResult History() // Вьюха сайта
+        [HttpGet, Authorize]
+        public IActionResult History() // Вывод сайтов
         {
             CreateDB();
 
@@ -60,15 +102,17 @@ namespace Web_Parent_Control.Controllers
 
         }
 
-        [HttpGet]
-        public IActionResult Downloads() // Вьюха сайта
-        {
+        [HttpGet, Authorize]
+        public IActionResult Downloads() // Вывод файлов
+        {            
             using (var db = new MainContext())
             {
-                var files = db.Files.AsNoTracking().OrderByDescending(x => x.Date).ToList();                
+                var files = db.Files.AsNoTracking().OrderByDescending(x => x.Date).ToList();
                 return View(files);
-            }           
+            }
         }
+
+        
 
         public IActionResult Privacy()
         {

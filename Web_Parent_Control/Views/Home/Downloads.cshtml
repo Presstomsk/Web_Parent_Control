@@ -1,15 +1,76 @@
 ﻿@using Web_Parent_Control.Controllers
 
+@model List<FileModel>;
 
 <section id="content" role="main">
     <div class="clearfix">
         <div class="widget">
-            
+            <div style="font-size:14px; position: relative; min-height: 200px; padding: 10px 20px;">
+                <div class="scroll-table">
+                    <table style="border-collapse: collapse;  border-spacing: 0;">
+                        <thead>
+                            <tr>
+                                <th class="col00"><center>Date</center></th>
+                                <th class="col11"><center>File</center></th>
+                                <th class="col22"><center></center></th>
+                            </tr>
+                        </thead>
+                    </table>
+                    <div class="scroll-table-body">
+                        <table style="border-collapse: collapse;  border-spacing: 0;">
+                            <tbody>
+
+                                @foreach (var file in Model)
+                                {
+                                        <tr>
+                                            <td class="col0"><center>@file.Date</center></td>
+                                            <td class="col1"><center><label>@file.Title</label></center></td>
+                                            <td class="col2">
+                                                <center>
+                                                
+                                                </center>
+                                            </td>
+                                        </tr>
+                                }
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
+<section id="sidebar" class="clearfix" role="complementary">
+    <aside class="widget clearfix">
+        @using (Html.BeginForm("GetNewData", "Home", FormMethod.Post))
+        {
+                <div>
+                    <center>
+                    @Html.RadioButton("period", "day", true)
+                        <span>за день</span> <br>
+                    @Html.RadioButton("period", "week")
+                        <span>за неделю</span> <br>
+                    @Html.RadioButton("period", "month")
+                        <span>за месяц</span><br>
+                    </center>                
+                </div>
+                <center>
+                    <input class="btn-true" type="submit" value="Применить фильтр" />
+                </center>
+        } <br><br>
+        @using (Html.BeginForm("History", "Home", FormMethod.Get))
+        {
+                <center><input class="btn-true" type="submit" value="Журнал" /></center>
 
+        }<br>
+        @using (Html.BeginForm("Downloads", "Home", FormMethod.Get))
+        {
+                <center><input class="btn-true" type="submit" value="Загрузки" /></center>
+        }<br>
+    </aside>
+</section>
 
 
 
