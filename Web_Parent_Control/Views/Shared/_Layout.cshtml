@@ -18,28 +18,7 @@
             </div>            
         </header>
         <div id="wrap" class="clearfix">
-            <section id="content" role="main">
-                <div class="clearfix">
-                    <div class="widget">
-                        @RenderBody()
-                    </div>
-                </div>
-            </section>
-       
-            <section id="sidebar" class="clearfix" role="complementary">
-                <aside class="widget clearfix">
-                    @using (Html.BeginForm("GetNewData", "Home", FormMethod.Post))
-                    {
-                        @Html.RadioButton("period", "day", true)
-                        <span>за день</span> <br />
-                        @Html.RadioButton("period", "week")
-                        <span>за неделю</span> <br />
-                        @Html.RadioButton("period", "month")
-                        <span>за месяц</span>
-                        <input type="submit" value="Обновить"/>
-                    }
-                </aside>
-            </section>
+            @RenderBody()
         </div>
     </div> 
     <div id="footer-wrap" class="container">

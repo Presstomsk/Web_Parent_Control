@@ -6,8 +6,10 @@ namespace Web_Parent_Control.Models
     {
         public Guid Id { get; set; } 
         public string FilePath { get; set; }
-        public DateTimeOffset Date { get; set; }
+        public DateTime Date { get; set; }
         public string Title { get; set; }
         public string Url { get; set; }
+        public Guid? UserId { get; set; }        
+        public virtual User User { get; set; }
     }
 }

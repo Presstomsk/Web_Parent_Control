@@ -9,5 +9,7 @@ namespace Web_Parent_Control.Models
         public DateTime Date { get; set; }
         public string Host { get; set; }
         public bool Flag { get; set; } = false;
+        public Guid? UserId { get; set; }
+        public virtual User User { get; set; }
     }
 }

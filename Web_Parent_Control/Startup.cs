@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -28,7 +29,8 @@ namespace Web_Parent_Control
         public void ConfigureServices(IServiceCollection services)
         {            
             services.AddControllersWithViews();
-            services.AddSingleton(MainContextFacroty());
+            ConfigureDb();
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -49,21 +51,24 @@ namespace Web_Parent_Control
 
             app.UseRouting();
 
+            app.UseAuthentication();
             app.UseAuthorization();
+            
 
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
                     name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Home}/{action=History}/{id?}");
             });
         }
 
-        public MainContext MainContextFacroty()
+        public void ConfigureDb()
         {
-            var builder = new DbContextOptionsBuilder<MainContext>();
-            builder.UseInMemoryDatabase("MainContext");
-            return new MainContext(builder.Options);
+            using (var db = new MainContext())
+            {
+                db.Database.Migrate();
+            }                        
         }
     }
 }
