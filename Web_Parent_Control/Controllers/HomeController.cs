@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Security.Claims;
 using System.Text.Json;
 using Web_Parent_Control.Connector;
@@ -46,6 +47,9 @@ namespace Web_Parent_Control.Controllers
                     ViewBag.Error = "Данного пользователя не существует";
                     return View();
                 }
+
+                CreateDB(user);
+                
                 var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Login) };
                 var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
                 HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
@@ -54,7 +58,7 @@ namespace Web_Parent_Control.Controllers
         }
 
         [HttpPost]
-        public IActionResult Logout()
+        public IActionResult Logout() //Выход
         {
             using (var db = new MainContext())
             {
@@ -70,7 +74,7 @@ namespace Web_Parent_Control.Controllers
         }
 
         [NonAction]
-        public void CreateDB() // Получение данных и формирование БД
+        public void CreateDB(User user) // Получение данных и формирование БД
         {
             //var result = HttpContext.User.Identity;
             var connector = new HttpConnector();
@@ -78,23 +82,24 @@ namespace Web_Parent_Control.Controllers
             var allSites = connector.GetData<List<SiteModel>>("http://localhost:5100/ParentSpy/sites");
             var allFiles = connector.GetData<List<FileModel>>("http://localhost:5100/ParentSpy/files");
 
-            using (var db = new MainContext())
+            using (var db = new MainContext())            
             {
-               var user = new User { Login = "Roman", Password = "Pass", ClientPC = "http://localhost:5100" };          
+                var monthSites = allSites.Where(x => (DateTime.Now - x.Date).Days <= 31).Select(x => x).ToList();
+                var monthFiles = allFiles.Where(x => (DateTime.Now - x.Date).Days <= 31).Select(x => x).ToList();  
+               
+                monthSites.ForEach(x => x.UserId = user.Id);
+                monthFiles.ForEach(x => x.UserId = user.Id);
 
-               user.Sites = allSites.Where(x => (DateTime.Now - x.Date).Days <= 31).Select(x => x).OrderByDescending(x => x.Date).ToList();
-               user.Files = allFiles.Where(x => (DateTime.Now - x.Date).Days <= 31).Select(x => x).OrderByDescending(x => x.Date).ToList();                
-
-               db.AddRange(user);               
-               db.SaveChangesAsync();
+                db.AddRange(monthSites);
+                db.AddRange(monthFiles);
+                db.SaveChangesAsync();
             }              
                        
         }
 
         [HttpGet, Authorize]
         public IActionResult History() // Вывод сайтов
-        {
-            CreateDB();
+        {       
 
             using (var db = new MainContext())
             {
