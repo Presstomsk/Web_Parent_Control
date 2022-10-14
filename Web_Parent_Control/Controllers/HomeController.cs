@@ -59,7 +59,9 @@ namespace Web_Parent_Control.Controllers
             using (var db = new MainContext())
             {
                 var allSites = db.Sites.AsNoTracking();
-                db.Remove(allSites);
+                var allFiles = db.Files.AsNoTracking();
+                db.RemoveRange(allSites);
+                db.RemoveRange(allFiles);
                 db.SaveChangesAsync();
             }
 

@@ -69,6 +69,10 @@
         {
                 <center><input class="btn-true" type="submit" value="Загрузки" /></center>
         }<br>
+        @using (Html.BeginForm("Logout", "Home", FormMethod.Post))
+        {
+                <center><input class="btn-true" type="submit" value="Выход" /></center>
+        }<br>
     </aside>
 </section>
 
