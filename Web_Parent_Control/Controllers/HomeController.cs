@@ -31,25 +31,45 @@ namespace Web_Parent_Control.Controllers
         }
 
         [HttpGet]
-        public IActionResult Start(string returnUrl) // Вывод формы авторизации
+        public IActionResult Start(string returnUrl) // Вывод формы Аутентификации
         {
             return View("Authorization", returnUrl);
         }
 
         [HttpPost]
-        public IActionResult Authorization(string returnUrl, string username, string password) // Авторизация
+        public IActionResult Authorization(string returnUrl, string username, string password) // Аутентификация
         {
             using (var db = new MainContext())
             {
-                var user = db.Users.FirstOrDefault(p => p.Login == username && p.Password == password);
+                var user = db.Users.FirstOrDefault(p => p.Login == username && p.Password == password); // Существует ли пользователь
                 if (user == null)
                 {
-                    ViewBag.Error = "Данного пользователя не существует";
+                    ViewBag.Error = "Данного пользователя не существует";                    
                     return View();
+                    
                 }
-
-                CreateDB(user);
-                
+                if (HttpContext.User.Identity != null && HttpContext.User.Identity.IsAuthenticated) // Аутентифицирован ли пользователь
+                {
+                    if (HttpContext.User.Identity.Name == username)
+                    {
+                        return Redirect("~/Home/History");
+                    }
+                    else
+                    {
+                        HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                    }
+                }
+                var siteCount = db.Sites.AsNoTracking().Where(x => x.UserId == user.Id).Count(); // Существуют ли старые данные в бд пользователя
+                var fileCount = db.Files.AsNoTracking().Where(x => x.UserId == user.Id).Count();
+                var crud = new Crud();
+                if (siteCount > 0 || fileCount > 0)
+                {
+                    crud.UpdateDB(user);
+                }
+                else 
+                {
+                    crud.CreateDB(user);
+                }                              
                 var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Login) };
                 var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
                 HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
@@ -60,41 +80,10 @@ namespace Web_Parent_Control.Controllers
         [HttpPost]
         public IActionResult Logout() //Выход
         {
-            using (var db = new MainContext())
-            {
-                var allSites = db.Sites.AsNoTracking();
-                var allFiles = db.Files.AsNoTracking();
-                db.RemoveRange(allSites);
-                db.RemoveRange(allFiles);
-                db.SaveChangesAsync();
-            }
-
+            //var db = new Crud();            
+            //db.DeleteDB()
             HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return View("Authorization");
-        }
-
-        [NonAction]
-        public void CreateDB(User user) // Получение данных и формирование БД
-        {
-            //var result = HttpContext.User.Identity;
-            var connector = new HttpConnector();
-
-            var allSites = connector.GetData<List<SiteModel>>("http://localhost:5100/ParentSpy/sites");
-            var allFiles = connector.GetData<List<FileModel>>("http://localhost:5100/ParentSpy/files");
-
-            using (var db = new MainContext())            
-            {
-                var monthSites = allSites.Where(x => (DateTime.Now - x.Date).Days <= 31).Select(x => x).ToList();
-                var monthFiles = allFiles.Where(x => (DateTime.Now - x.Date).Days <= 31).Select(x => x).ToList();  
-               
-                monthSites.ForEach(x => x.UserId = user.Id);
-                monthFiles.ForEach(x => x.UserId = user.Id);
-
-                db.AddRange(monthSites);
-                db.AddRange(monthFiles);
-                db.SaveChangesAsync();
-            }              
-                       
         }
 
         [HttpGet, Authorize]
@@ -117,9 +106,7 @@ namespace Web_Parent_Control.Controllers
                 var files = db.Files.AsNoTracking().OrderByDescending(x => x.Date).ToList();
                 return View(files);
             }
-        }
-
-        
+        }       
 
         public IActionResult Privacy()
         {
