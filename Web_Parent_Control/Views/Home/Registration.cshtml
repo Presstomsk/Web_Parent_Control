@@ -9,7 +9,7 @@
             <form asp-controller="Home" asp-action="Registration" method="post">
 
                 <label style="text-align: center; font-weight: 500;">Регистрация</label><br><br>
-                <div class="errorMessage" style="color:red;">@ViewBag.Error</div><br>
+                <div class="errorMessage" style="color: @ViewBag.Color;">@ViewBag.Error</div><br>
                 @Html.Hidden("returnUrl",Model)
                 <ul style="min-width: 300px;">
                     <li >
@@ -32,7 +32,7 @@
 
                     <li >
                         <label for="ip" >Parent Spy IP</label>
-                        <input type="text" name="ip" id="ip" placeholder="Parent Spy IP" required maxlength="100" style="float: right;" />
+                        <input type="text" name="ip" id="ip" placeholder="http://ip:port" required maxlength="100" style="float: right;" />
                     </li>
                     <br>
 

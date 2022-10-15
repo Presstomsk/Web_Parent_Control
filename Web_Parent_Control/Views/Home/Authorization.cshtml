@@ -9,7 +9,7 @@
             <form asp-controller="Home" asp-action="Authorization" method="post" >       
                 
                 <label style="text-align: center; font-weight: 500;">Авторизация</label><br><br>
-                <div class="errorMessage" style="color:red;">@ViewBag.Error</div><br>             
+                <div class="errorMessage" style="color:@ViewBag.Color;">@ViewBag.Error</div><br>
                 @Html.Hidden("returnUrl",Model)
                 <ul style="min-width: 300px;">
                     <li >

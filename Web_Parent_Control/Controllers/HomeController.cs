@@ -12,6 +12,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Security.Claims;
+using System.Security.Policy;
 using System.Text.Json;
 using Web_Parent_Control.Connector;
 using Web_Parent_Control.Database;
@@ -31,9 +32,9 @@ namespace Web_Parent_Control.Controllers
         }
 
         [HttpGet]
-        public IActionResult Start(string returnUrl) // Вывод формы Аутентификации
+        public IActionResult Authorization(string returnUrl) // Вывод формы Аутентификации
         {
-            return View("Authorization", returnUrl);
+            return View(returnUrl);
         }
 
         [HttpPost]
@@ -44,7 +45,8 @@ namespace Web_Parent_Control.Controllers
                 var user = db.Users.FirstOrDefault(p => p.Login == username && p.Password == password); // Существует ли пользователь
                 if (user == null)
                 {
-                    ViewBag.Error = "Данного пользователя не существует";                    
+                    ViewBag.Error = "Данного пользователя не существует";
+                    ViewBag.Color = "red";
                     return View();
                     
                 }
@@ -90,6 +92,64 @@ namespace Web_Parent_Control.Controllers
         public IActionResult Registration() // Форма регистрации
         {
             return View();
+        }
+
+        [HttpPost]
+        public IActionResult Registration(string username, string password, string repeatPassword, string ip) // Регистрация
+        {
+            if (password != repeatPassword) //Пароль неккоректный
+            {
+                ViewBag.Error = "Пароли не идентичны!";
+                ViewBag.Color = "red";
+                return View();
+            }
+            using (var db = new MainContext())
+            {
+                var user = db.Users.FirstOrDefault(p => p.Login == username); // Пользователь уже существует
+                if (user != null)
+                {
+                    ViewBag.Error = "Пользователь с таким логином уже существует!";
+                    ViewBag.Color = "red";
+                    return View();
+                }
+            }
+            var client = new HttpClient();
+            try
+            {
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri($"{ip}/ParentSpy/echo")
+                };
+                var response = client.Send(request);
+                if (!response.IsSuccessStatusCode)     // Отсутствует подключение к Parent Spy 
+                {
+                    ViewBag.Error = "Отсутствует подключение к Parent Spy!";
+                    return View();
+                }
+
+                using (var db = new MainContext())
+                {
+                    db.AddRange(new User {Login = username, Password = password, ClientPC = ip }); //Добавление нового пользователя в БД
+                    db.SaveChangesAsync();
+
+                    ViewBag.Error = "Регистрация пройдена. Авторизуйтесь!";
+                    ViewBag.Color = "green";
+                    return View("Authorization");
+                }
+            }
+            catch (UriFormatException ex) // Проверка формата ip Parent Spy
+            {
+                ViewBag.Error = "Формат Parent Spy IP некорректный!";
+                ViewBag.Color = "red";
+                return View();
+            }
+            catch (HttpRequestException ex) // Отсутствует подключение к Parent Spy 
+            {
+                ViewBag.Error = "Отсутствует подключение к Parent Spy!";
+                ViewBag.Color = "red";
+                return View();
+            }            
         }
 
 

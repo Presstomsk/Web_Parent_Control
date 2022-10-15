@@ -14,11 +14,11 @@ namespace Web_Parent_Control.Database
         {            
             var connector = new HttpConnector();
 
-            var allSites = connector.GetData<List<SiteModel>>("http://localhost:5100/ParentSpy/sites");
-            var allFiles = connector.GetData<List<FileModel>>("http://localhost:5100/ParentSpy/files");
+            var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites");
+            var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");
 
             using (var db = new MainContext())
-            {
+            {       
                 var monthSites = allSites.Where(x => (DateTime.Now - x.Date).Days <= 31).Select(x => x).ToList();
                 var monthFiles = allFiles.Where(x => (DateTime.Now - x.Date).Days <= 31).Select(x => x).ToList();
 
