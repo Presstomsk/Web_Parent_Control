@@ -86,6 +86,13 @@ namespace Web_Parent_Control.Controllers
             return View("Authorization");
         }
 
+        [HttpGet]
+        public IActionResult Registration() // Форма регистрации
+        {
+            return View();
+        }
+
+
         [HttpGet, Authorize]
         public IActionResult History() // Вывод сайтов
         {       

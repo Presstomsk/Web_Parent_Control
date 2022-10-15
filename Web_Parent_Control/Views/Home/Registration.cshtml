@@ -1,0 +1,51 @@
+﻿@using Web_Parent_Control.Controllers
+@{
+}
+@model string;
+
+<div style="min-height: 600px; display: flex;  align-items: center;  justify-content: center; ">
+    <center>
+        <div style=" min-height: 350px; min-width: 400px; background-color: #EEDDFF; border: 6px solid #7922CC; border-radius: 25px;  display: flex;  align-items: center;  justify-content: center; ">
+            <form asp-controller="Home" asp-action="Registration" method="post">
+
+                <label style="text-align: center; font-weight: 500;">Регистрация</label><br><br>
+                <div class="errorMessage" style="color:red;">@ViewBag.Error</div><br>
+                @Html.Hidden("returnUrl",Model)
+                <ul style="min-width: 300px;">
+                    <li >
+                        <label for="username" >Username</label>
+                        <input type="text" name="username" id="username" placeholder="Username" required autofocus maxlength="20" style = "float: right;" />
+                    </li>
+                    <br>
+
+                    <li>
+                        <label for="password" >Password</label>
+                        <input type="password" name="password" id="password" placeholder="Password" required maxlength="20" style="float: right;" />
+                    </li>
+                    <br>
+
+                    <li >
+                        <label for="repeatPassword">Rep. Password</label>
+                        <input type="password" name="repeatPassword" id="repeatPassword" placeholder="Repeat Password" required maxlength="20" style="float: right;" />
+                    </li>
+                    <br>
+
+                    <li >
+                        <label for="ip" >Parent Spy IP</label>
+                        <input type="text" name="ip" id="ip" placeholder="Parent Spy IP" required maxlength="100" style="float: right;" />
+                    </li>
+                    <br>
+
+                </ul><br>
+
+                <div class="buttons">
+                    <input type="submit" name="registration" value="Регистрация" /><br>
+                </div>
+                <br>      
+
+            </form>
+        </div>
+    </center>
+</div>
+
+

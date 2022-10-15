@@ -5,31 +5,31 @@
 
 <div style="min-height: 600px; display: flex;  align-items: center;  justify-content: center; ">
        <center>
-        <div style=" min-height: 300px; min-width: 300px; background-color: #EEDDFF; border: 6px solid #7922CC; border-radius: 25px;  display: flex;  align-items: center;  justify-content: center; ">
+        <div style=" min-height: 350px; min-width: 400px; background-color: #EEDDFF; border: 6px solid #7922CC; border-radius: 25px;  display: flex;  align-items: center;  justify-content: center; ">
             <form asp-controller="Home" asp-action="Authorization" method="post" >       
                 
-                <label style="text-align: center; font-weight: 500;">Авторизация</label><br>
+                <label style="text-align: center; font-weight: 500;">Авторизация</label><br><br>
                 <div class="errorMessage" style="color:red;">@ViewBag.Error</div><br>             
                 @Html.Hidden("returnUrl",Model)
-                <ul>                    
-                    <li>
-                        <label for="username">Username</label>
-                        <input type="text" name="username" id="username" placeholder="Username" required autofocus maxlength="20" />
+                <ul style="min-width: 300px;">
+                    <li >
+                        <label for="username" >Username</label>
+                        <input type="text" name="username" id="username" placeholder="Username" required autofocus maxlength="20" style="float: right;" />
                     </li><br>
 
-                    <li>
-                        <label for="password">Password</label>
-                        <input type="password" name="password" id="password" placeholder="Password" required maxlength="20" />
+                    <li >
+                        <label for="password" >Password</label>
+                        <input type="password" name="password" id="password" placeholder="Password" required maxlength="20" style="float: right;" />
                     </li><br>
 
-                </ul>
+                </ul><br>
 
                 <div class="buttons">
                     <input type="submit" name="login" value="Вход" /><br>
                 </div>
                 <br>
                 <div style="text-align: center;">
-                    <a href="admin.php?action=registration">Не заргистрированы?</a>
+                    <a asp-controller="Home" asp-action="Registration">Не заргистрированы?</a>
                 </div>
 
             </form>
