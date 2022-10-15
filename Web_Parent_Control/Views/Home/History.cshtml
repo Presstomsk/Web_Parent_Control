@@ -91,7 +91,10 @@
         }<br>
         @using (Html.BeginForm("Logout", "Home", FormMethod.Post))
         {
-            <center><input class="btn-true" type="submit" value="Выход" /></center>
+            <center>
+                @Html.Hidden("userId", Model.FirstOrDefault()?.UserId)
+                <input class="btn-true" type="submit" value="Выход" />
+            </center>
         }<br>
     </aside>
 </section>

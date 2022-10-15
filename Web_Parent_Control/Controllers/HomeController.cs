@@ -80,10 +80,17 @@ namespace Web_Parent_Control.Controllers
         }
 
         [HttpPost]
-        public IActionResult Logout() //Выход
+        public IActionResult Logout(Guid userId) //Выход
         {
-            //var db = new Crud();            
-            //db.DeleteDB()
+            User user;
+
+            using (var db = new MainContext())
+            {
+                user = db.Users.FirstOrDefault(x => x.Id == userId);
+            }
+
+            new Crud().DeleteDB(user);      
+           
             HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return View("Authorization");
         }

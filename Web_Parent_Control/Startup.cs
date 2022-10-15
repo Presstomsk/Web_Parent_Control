@@ -30,7 +30,7 @@ namespace Web_Parent_Control
         {            
             services.AddControllersWithViews();
             ConfigureDb();
-            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options => options.LoginPath = "/Home/Start");
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options => options.LoginPath = "/Home/Authorization");
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
