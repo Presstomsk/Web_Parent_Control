@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using EFCore.BulkExtensions;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -10,13 +11,8 @@ namespace Web_Parent_Control.Database
 {
     public class Crud
     {
-        public void CreateDB(User user) // Получение данных и формирование БД
-        {            
-            var connector = new HttpConnector();
-
-            var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites");
-            var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");
-
+        public void CreateDB(User user, List<SiteModel> allSites, List<FileModel> allFiles) // Получение данных и формирование БД
+        { 
             using (var db = new MainContext())
             {       
                 var monthSites = allSites.Where(x => (DateTime.Now - x.Date).Days <= 31).Select(x => x).ToList();
@@ -24,10 +20,9 @@ namespace Web_Parent_Control.Database
 
                 monthSites.ForEach(x => x.UserId = user.Id);
                 monthFiles.ForEach(x => x.UserId = user.Id);
-               
-                db.AddRange(monthSites);
-                db.AddRange(monthFiles);
-                db.SaveChanges();
+
+                db.BulkInsertAsync(monthSites);
+                db.BulkInsertAsync(monthFiles);
             }
 
         }        
@@ -35,19 +30,19 @@ namespace Web_Parent_Control.Database
         {
             using (var db = new MainContext())
             {
-                var allSites = db.Sites.AsNoTracking().Where(x => x.UserId == user.Id);
-                var allFiles = db.Files.AsNoTracking().Where(x => x.UserId == user.Id);
-                db.RemoveRange(allSites);
-                db.RemoveRange(allFiles);
-                db.SaveChangesAsync();
+                var allSites = db.Sites.AsNoTracking().Where(x => x.UserId == user.Id).ToList();
+                var allFiles = db.Files.AsNoTracking().Where(x => x.UserId == user.Id).ToList();
+
+                db.BulkDeleteAsync(allSites);
+                db.BulkDeleteAsync(allFiles);
             }
 
         }
        
-        public void UpdateDB(User user) // Обновление данных в БД
+        public void UpdateDB(User user, List<SiteModel> allSites, List<FileModel> allFiles) // Обновление данных в БД
         {
             DeleteDB(user);
-            CreateDB(user);
+            CreateDB(user, allSites, allFiles);
         }
     }
 }

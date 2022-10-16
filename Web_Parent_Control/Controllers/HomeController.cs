@@ -66,11 +66,27 @@ namespace Web_Parent_Control.Controllers
                 var crud = new Crud();
                 if (siteCount > 0 || fileCount > 0)
                 {
-                    crud.UpdateDB(user);
+                    var timer = new Stopwatch();
+                    timer.Restart();
+                    var connector = new HttpConnector();
+                    var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites");
+                    var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");
+                    timer.Stop();
+                    var ts = timer.Elapsed;
+                    var elapsedTime = String.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                    crud.UpdateDB(user, allSites, allFiles);                   
                 }
                 else 
                 {
-                    crud.CreateDB(user);
+                    var timer = new Stopwatch();
+                    timer.Restart();
+                    var connector = new HttpConnector();
+                    var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites");
+                    var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");
+                    timer.Stop();
+                    var ts = timer.Elapsed;
+                    var elapsedTime = String.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                    crud.CreateDB(user, allSites, allFiles);                    
                 }                              
                 var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Login) };
                 var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
@@ -88,8 +104,8 @@ namespace Web_Parent_Control.Controllers
             {
                 user = db.Users.FirstOrDefault(x => x.Id == userId);
             }
-
-            new Crud().DeleteDB(user);      
+           
+            new Crud().DeleteDB(user);
            
             HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return View("Authorization");
