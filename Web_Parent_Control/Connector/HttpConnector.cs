@@ -1,9 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Net.Http;
+﻿using System.Net.Http;
 using System.Text.Json;
 using System;
-using Web_Parent_Control.Database;
-using Web_Parent_Control.Models;
+
 
 namespace Web_Parent_Control.Connector
 {
@@ -21,7 +19,9 @@ namespace Web_Parent_Control.Connector
             {
                 response.EnsureSuccessStatusCode();
                 var result = response.Content.ReadAsStringAsync().Result;
-                var data = JsonSerializer.Deserialize<T>(result);                           
+                var gzip = new Gzip();
+                var decompressed = gzip.Decompress(result);
+                var data = JsonSerializer.Deserialize<T>(decompressed);                           
                 return data;
             }
         }

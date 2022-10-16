@@ -1,6 +1,6 @@
 ﻿@using Web_Parent_Control.Controllers
 
-@model List<FileModel>;
+@model List<DTO>
 
 <section id="content" role="main">
     <div class="clearfix">
@@ -24,7 +24,7 @@
                                 {
                                         <tr>
                                             <td class="col0"><center>@file.Date</center></td>
-                                            <td class="col1"><center><label>@file.Title</label></center></td>
+                                            <td class="col1"><center><label>@file.Content</label></center></td>
                                             <td class="col2">
                                                 <center>
                                                 
@@ -62,16 +62,25 @@
         } <br><br>
         @using (Html.BeginForm("History", "Home", FormMethod.Get))
         {
-                <center><input class="btn-true" type="submit" value="Журнал" /></center>
+                <center>
+                @Html.Hidden("userId", Model.FirstOrDefault()?.UserId)
+                    <input class="btn-true" type="submit" value="Журнал" />
+                </center>
 
         }<br>
         @using (Html.BeginForm("Downloads", "Home", FormMethod.Get))
         {
-                <center><input class="btn-true" type="submit" value="Загрузки" /></center>
+                <center>
+                @Html.Hidden("userId", Model.FirstOrDefault()?.UserId)
+                    <input class="btn-true" type="submit" value="Загрузки" />
+                </center>
         }<br>
         @using (Html.BeginForm("Logout", "Home", FormMethod.Post))
         {
-                <center><input class="btn-true" type="submit" value="Выход" /></center>
+            <center>
+                @Html.Hidden("userId", Model.FirstOrDefault()?.UserId)
+                <input class="btn-true" type="submit" value="Выход" />
+            </center>
         }<br>
     </aside>
 </section>

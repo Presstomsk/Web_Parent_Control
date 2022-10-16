@@ -54,7 +54,7 @@ namespace Web_Parent_Control.Controllers
                 {
                     if (HttpContext.User.Identity.Name == username)
                     {
-                        return Redirect("~/Home/History");
+                        return Redirect($"~/Home/History?userId={user.Id}");
                     }
                     else
                     {
@@ -65,38 +65,30 @@ namespace Web_Parent_Control.Controllers
                 var fileCount = db.Files.AsNoTracking().Where(x => x.UserId == user.Id).Count();
                 var crud = new Crud();
                 if (siteCount > 0 || fileCount > 0)
-                {
-                    var timer = new Stopwatch();
-                    timer.Restart();
+                {                    
                     var connector = new HttpConnector();
                     var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites");
-                    var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");
-                    timer.Stop();
-                    var ts = timer.Elapsed;
-                    var elapsedTime = String.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                    var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");                   
+                    
                     crud.UpdateDB(user, allSites, allFiles);                   
                 }
                 else 
-                {
-                    var timer = new Stopwatch();
-                    timer.Restart();
+                {                   
                     var connector = new HttpConnector();
                     var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites");
                     var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");
-                    timer.Stop();
-                    var ts = timer.Elapsed;
-                    var elapsedTime = String.Format("{0:00}:{1:00}.{2:00}", ts.Minutes, ts.Seconds, ts.Milliseconds / 10);
+                   
                     crud.CreateDB(user, allSites, allFiles);                    
                 }                              
                 var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Login) };
                 var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
                 HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-                return Redirect(returnUrl ?? "~/Home/History");
+                return Redirect($"~/Home/History?userId={user.Id}");
             }
         }
 
         [HttpPost]
-        public IActionResult Logout(Guid userId) //Выход
+        public IActionResult Logout(Guid? userId) //Выход
         {
             User user;
 
@@ -176,24 +168,26 @@ namespace Web_Parent_Control.Controllers
         }
 
 
-        [HttpGet, Authorize]
-        public IActionResult History() // Вывод сайтов
+        [HttpGet,Authorize]
+        public IActionResult History(Guid? userId) // Вывод сайтов
         {       
 
             using (var db = new MainContext())
             {
-                var sites = db.Sites.AsNoTracking().OrderByDescending(x => x.Date).ToList();                
+                var sites = db.Sites.AsNoTracking().Where(x => x.UserId == userId)
+                                    .Select(x => new DTO {Date = x.Date, Content = x.Url, UserId = userId }).OrderByDescending(x => x.Date).ToList();                      
                 return View(sites);
             }           
 
         }
 
-        [HttpGet, Authorize]
-        public IActionResult Downloads() // Вывод файлов
+        [HttpGet,Authorize]
+        public IActionResult Downloads(Guid? userId) // Вывод файлов
         {            
             using (var db = new MainContext())
             {
-                var files = db.Files.AsNoTracking().OrderByDescending(x => x.Date).ToList();
+                var files = db.Files.AsNoTracking().Where(x => x.UserId == userId)
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Title, UserId = userId }).OrderByDescending(x => x.Date).ToList();                
                 return View(files);
             }
         }       
