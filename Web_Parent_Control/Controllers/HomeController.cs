@@ -4,16 +4,16 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
-using System.Runtime.CompilerServices;
+using System.Net.Sockets;
 using System.Security.Claims;
-using System.Security.Policy;
-using System.Text.Json;
 using Web_Parent_Control.Connector;
 using Web_Parent_Control.Database;
 using Web_Parent_Control.Models;
@@ -124,7 +124,7 @@ namespace Web_Parent_Control.Controllers
                 var user = db.Users.FirstOrDefault(p => p.Login == username); // Пользователь уже существует
                 if (user != null)
                 {
-                    ViewBag.Error = "Пользователь с таким логином уже существует!";
+                    ViewBag.Error = "Данный логин зарегистрирован!";
                     ViewBag.Color = "red";
                     return View();
                 }
@@ -132,12 +132,8 @@ namespace Web_Parent_Control.Controllers
             var client = new HttpClient();
             try
             {
-                var request = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Post,
-                    RequestUri = new Uri($"{ip}/ParentSpy/echo")
-                };
-                var response = client.Send(request);
+                              
+                var response = client.GetAsync($"{ip}/ParentSpy/echoGet").Result;                
                 if (!response.IsSuccessStatusCode)     // Отсутствует подключение к Parent Spy 
                 {
                     ViewBag.Error = "Отсутствует подключение к Parent Spy!";
@@ -154,15 +150,15 @@ namespace Web_Parent_Control.Controllers
                     return View("Authorization");
                 }
             }
-            catch (UriFormatException ex) // Проверка формата ip Parent Spy
+            catch (InvalidOperationException ex) // Проверка формата ip Parent Spy
             {
-                ViewBag.Error = "Формат Parent Spy IP некорректный!";
+                ViewBag.Error = "Некорректный Parent Spy IP !";
                 ViewBag.Color = "red";
                 return View();
             }
-            catch (HttpRequestException ex) // Отсутствует подключение к Parent Spy 
+            catch (AggregateException ex) // Отсутствует подключение к Parent Spy 
             {
-                ViewBag.Error = "Отсутствует подключение к Parent Spy!";
+                ViewBag.Error = "Некорректный Parent Spy IP !";
                 ViewBag.Color = "red";
                 return View();
             }            
