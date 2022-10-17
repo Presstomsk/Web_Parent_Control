@@ -82,25 +82,16 @@
         }<br><br>
         @using (Html.BeginForm("History", "Home", FormMethod.Get))
         {
-            <center>
-                @Html.Hidden("userId", Model.FirstOrDefault()?.UserId)
-                <input class="btn-true" type="submit" value="Журнал" />
-            </center>
+            <center><input class="btn-true" type="submit" value="Журнал" /></center>
 
         }<br>
         @using (Html.BeginForm("Downloads", "Home", FormMethod.Get))
         {
-            <center>
-                @Html.Hidden("userId", Model.FirstOrDefault()?.UserId)
-                <input class="btn-true" type="submit" value="Загрузки" />
-            </center>
+            <center><input class="btn-true" type="submit" value="Загрузки" /></center>
         }<br>
-        @using (Html.BeginForm("Logout", "Home", FormMethod.Post))
+        @using (Html.BeginForm("Logout", "Home", FormMethod.Get))
         {
-            <center>
-                @Html.Hidden("userId", Model.FirstOrDefault()?.UserId)
-                <input class="btn-true" type="submit" value="Выход" />
-            </center>
+            <center><input class="btn-true" type="submit" value="Выход" /></center>
         }<br>
     </aside>
 </section>

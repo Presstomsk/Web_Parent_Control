@@ -34,7 +34,7 @@ namespace Web_Parent_Control.Controllers
         [HttpGet]
         public IActionResult Authorization(string returnUrl) // Вывод формы Аутентификации
         {
-            return View(returnUrl);
+            return View("Authorization", returnUrl);
         }
 
         [HttpPost]
@@ -54,7 +54,7 @@ namespace Web_Parent_Control.Controllers
                 {
                     if (HttpContext.User.Identity.Name == username)
                     {
-                        return Redirect($"~/Home/History?userId={user.Id}");
+                        return Redirect("~/Home/History");
                     }
                     else
                     {
@@ -83,18 +83,19 @@ namespace Web_Parent_Control.Controllers
                 var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Login) };
                 var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
                 HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-                return Redirect($"~/Home/History?userId={user.Id}");
+                return Redirect(returnUrl ?? "~/Home/History");
             }
         }
 
-        [HttpPost]
-        public IActionResult Logout(Guid? userId) //Выход
+        [HttpGet, Authorize]
+        public IActionResult Logout() //Выход
         {
+            var userName = HttpContext.User.Identity.Name;
             User user;
 
             using (var db = new MainContext())
             {
-                user = db.Users.FirstOrDefault(x => x.Id == userId);
+                user = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName);
             }
            
             new Crud().DeleteDB(user);
@@ -168,34 +169,34 @@ namespace Web_Parent_Control.Controllers
         }
 
 
-        [HttpGet,Authorize]
-        public IActionResult History(Guid? userId) // Вывод сайтов
-        {       
+        [HttpGet, Authorize]
+        public IActionResult History() // Вывод сайтов
+        {
+            var userName = HttpContext.User.Identity.Name;
 
             using (var db = new MainContext())
             {
+                var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
                 var sites = db.Sites.AsNoTracking().Where(x => x.UserId == userId)
-                                    .Select(x => new DTO {Date = x.Date, Content = x.Url, UserId = userId }).OrderByDescending(x => x.Date).ToList();                      
+                                    .Select(x => new DTO {Date = x.Date, Content = x.Url}).OrderByDescending(x => x.Date).ToList();                      
                 return View(sites);
             }           
 
         }
 
-        [HttpGet,Authorize]
-        public IActionResult Downloads(Guid? userId) // Вывод файлов
-        {            
+        [HttpGet, Authorize]
+        public IActionResult Downloads() // Вывод файлов
+        {
+            var userName = HttpContext.User.Identity.Name;
+
             using (var db = new MainContext())
             {
+                var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
                 var files = db.Files.AsNoTracking().Where(x => x.UserId == userId)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Title, UserId = userId }).OrderByDescending(x => x.Date).ToList();                
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Title}).OrderByDescending(x => x.Date).ToList();                
                 return View(files);
             }
-        }       
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
+        }      
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
