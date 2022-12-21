@@ -1,6 +1,6 @@
 ﻿@using Web_Parent_Control.Controllers
 
-@model List<DTO>
+@model ViewModel
 @*@functions
 {
     public void ChangeStatus(int id)
@@ -13,41 +13,43 @@
         else person.Flag = false;
     }    
 }*@
-
-<section id="content" role="main">
-    <div class="clearfix">
+<div style="margin-bottom: 20px;">
+    <label style="color : blue; font-weight: bolder; font-size: 30px; ">Добро пожаловать, @(Model.Username)!</label>
+</div>
+<div style="min-height: 550px;">
+    <section id="content" role="main" >
+        <div class="clearfix" >
         <div class="widget">
-            <div style="font-size:14px; position: relative; min-height: 200px; padding: 10px 20px;">
+            <div style="font-size:14px; position: relative; min-height: 400px; padding: 10px 20px;">
                 <div class="scroll-table">
                     <table style="border-collapse: collapse;  border-spacing: 0;">
                         <thead>
                             <tr>
                                 <th class="col00"><center>Date</center></th>
-                                <th class="col11"><center>Site</center></th>
+                                <th class="col11"><center>Site</center></th>                                
                                 <th class="col22"><center></center></th>
                             </tr>
                         </thead>
                     </table>
                     <div class="scroll-table-body">
                         <table style="border-collapse: collapse;  border-spacing: 0;">
-                            <tbody>
+                            <tbody class="dataTable">
 
-                                @foreach (var site in Model)
+                                @foreach (var site in Model.Data)
                                 {
                                     <tr>
                                         <td class="col0"><center>@site.Date</center></td>
                                         <td class="col1"><center><label>@site.Content</label></center></td>
                                         <td class="col2">
                                             <center>
-                                               @* @if (@site.Flag == false)
+                                                @if (@site.Blocked == false)
                                                 {
-                                                    <input class="btn-false" type="button" value="Блокировать" onClick='location.href="https://localhost:44309/Home/Action?id=@site.Id"'>
+                                                    <input class="btn-false" type="button" value="Блокировать сайт" title=@site.Site>
                                                 }
                                                 else
                                                 {
-                                                    <input class="btn-true" type="button" value="Разблокировать" onClick='location.href="https://localhost:44309/Home/Action?id=@site.Id"'>
-                                                }*@
-
+                                                    <input class="btn-true" type="button" value="Разблокировать сайт" title=@site.Site>
+                                                }
                                             </center>
                                         </td>
                                     </tr>
@@ -62,8 +64,9 @@
     </div>
 </section>
 
-<section id="sidebar" class="clearfix" role="complementary">
+    <section id="sidebar" class="clearfix" role="complementary">
     <aside class="widget clearfix">
+            <div style="font-size:14px; position: relative; min-height: 400px; padding: 10px 20px; justify-content: center; ">
        @using (Html.BeginForm("GetNewData", "Home", FormMethod.Post))
        {
             <div>
@@ -78,24 +81,25 @@
                 @Html.Hidden("action", "History")
             </div>
             <center>
-                <input class="btn-true" type="submit" value="Применить фильтр" />
+                        <input type="submit" value="Применить фильтр" style="background: green ;  border: 1px solid black;  border-radius: 5px;" />
             </center>
         }<br><br>
         @using (Html.BeginForm("History", "Home", FormMethod.Get))
         {
-            <center><input class="btn-true" type="submit" value="Журнал" /></center>
+                    <center><input type="submit" value="Журнал" style="background: green ;  border: 1px solid black;  border-radius: 5px;" /></center>
 
         }<br>
         @using (Html.BeginForm("Downloads", "Home", FormMethod.Get))
         {
-            <center><input class="btn-true" type="submit" value="Загрузки" /></center>
+                    <center><input type="submit" value="Загрузки" style="background: green ;  border: 1px solid black;  border-radius: 5px;" /></center>
         }<br>
         @using (Html.BeginForm("Logout", "Home", FormMethod.Get))
         {
-            <center><input class="btn-true" type="submit" value="Выход" /></center>
+                    <center><input type="submit" value="Выход" style="background: green ;  border: 1px solid black;  border-radius: 5px;" /></center>
         }<br>
+            </div>
     </aside>
 </section>
-
+</div>
 
 

@@ -174,8 +174,13 @@ namespace Web_Parent_Control.Controllers
             {
                 var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
                 var sites = db.Sites.AsNoTracking().Where(x => x.UserId == userId)
-                                    .Select(x => new DTO {Date = x.Date, Content = x.Url}).OrderByDescending(x => x.Date).ToList();                      
-                return View(sites);
+                                    .Select(x => new DTO {Date = x.Date, Content = x.Url, Blocked = false, Site = x.Host}).OrderByDescending(x => x.Date).ToList();
+                var viewModel = new ViewModel
+                {
+                    Data = sites,
+                    Username = userName
+                };
+                return View(viewModel);
             }           
 
         }
@@ -189,8 +194,13 @@ namespace Web_Parent_Control.Controllers
             {
                 var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
                 var files = db.Files.AsNoTracking().Where(x => x.UserId == userId)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Title}).OrderByDescending(x => x.Date).ToList();                
-                return View(files);
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Title, Blocked = false, Site = x.Url}).OrderByDescending(x => x.Date).ToList();
+                var viewModel = new ViewModel
+                {
+                    Data = files,
+                    Username = userName
+                };
+                return View(viewModel);               
             }
         }      
 
@@ -200,23 +210,43 @@ namespace Web_Parent_Control.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        //[HttpGet]
-        //public IActionResult Action(Guid id) // Отмечаем сайты на блокировку
-        //{
+        [HttpPost("/block/{title?}"), Authorize]
+        public IActionResult Block(string title) // Отмечаем сайты на блокировку
+        {
 
-        //    var site = _mainContext.Sites.SingleOrDefault(x => x.Id == id);
+            //var site = _mainContext.Sites.SingleOrDefault(x => x.Id == id);
 
-        //    if (site.Flag == false)
-        //    {
-        //        site.Flag = true;
-        //    }
-        //    else site.Flag = false;
+            //if (site.Flag == false)
+            //{
+            //    site.Flag = true;
+            //}
+            //else site.Flag = false;
 
-        //    _mainContext.SaveChangesAsync();
+            //_mainContext.SaveChangesAsync();
 
-        //    var sites = _mainContext.Sites.Select(x => x).ToList();
-        //    return View("Index", sites);
-        //}
+            //var sites = _mainContext.Sites.Select(x => x).ToList();
+            //return View("Index", sites);
+            return Ok();
+        }
+
+        [HttpPost("/unblock/{title?}"), Authorize]
+        public IActionResult Unblock(string title) // Отмечаем сайты на разблокировку
+        {
+
+            //var site = _mainContext.Sites.SingleOrDefault(x => x.Id == id);
+
+            //if (site.Flag == false)
+            //{
+            //    site.Flag = true;
+            //}
+            //else site.Flag = false;
+
+            //_mainContext.SaveChangesAsync();
+
+            //var sites = _mainContext.Sites.Select(x => x).ToList();
+            //return View("Index", sites);
+            return Ok();
+        }
 
         [HttpPost]
         public IActionResult GetNewData(string period, string action) // Фильтр по периоду
@@ -227,40 +257,49 @@ namespace Web_Parent_Control.Controllers
             {
                 var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
                 List<DTO> items = default;
+                ViewModel viewModel = default;
 
                 if (period == "month")
-                {                    
+                {
                     if (action == "History")
                     {
                         items = db.Sites.AsNoTracking().Where(x => x.UserId == userId)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Url }).OrderByDescending(x => x.Date).ToList();
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Url, Blocked = false, Site =x.Host  }).OrderByDescending(x => x.Date).ToList();
                     }
-                    else items = db.Files.AsNoTracking().Where(x => x.UserId == userId)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Title }).OrderByDescending(x => x.Date).ToList();
-                    return View(action, items);
+                    else
+                    {
+                        items = db.Files.AsNoTracking().Where(x => x.UserId == userId)
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Title, Blocked = false, Site = x.Url  }).OrderByDescending(x => x.Date).ToList();
+                    }                   
                 }
                 else if (period == "week")
                 {
                     if (action == "History")
                     {
                         items = db.Sites.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 7)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Url }).OrderByDescending(x => x.Date).ToList();
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Url, Blocked = false, Site = x.Host }).OrderByDescending(x => x.Date).ToList();
                     }
                     else items = db.Files.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 7)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Title }).OrderByDescending(x => x.Date).ToList();
-                    return View(action, items);                    
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Title, Blocked = false, Site = x.Url }).OrderByDescending(x => x.Date).ToList();                                 
                 }
                 else
                 {
                     if (action == "History")
                     {
                         items = db.Sites.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 1)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Url }).OrderByDescending(x => x.Date).ToList();
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Url, Blocked = false , Site = x.Host }).OrderByDescending(x => x.Date).ToList();
                     }
                     else items = db.Files.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 1)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Title }).OrderByDescending(x => x.Date).ToList();
-                    return View(action, items);                  
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Title, Blocked = false, Site = x.Url }).OrderByDescending(x => x.Date).ToList();                                     
                 }
+
+                viewModel = new ViewModel
+                {
+                    Data = items,
+                    Username = userName
+                };
+
+                return View(action, viewModel);
             }
         }
     }    
