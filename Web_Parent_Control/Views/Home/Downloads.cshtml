@@ -54,7 +54,8 @@
                         <span>за неделю</span> <br>
                     @Html.RadioButton("period", "month")
                         <span>за месяц</span><br>
-                    </center>                
+                    </center>
+                    @Html.Hidden("action", "Downloads")
                 </div>
                 <center>
                     <input class="btn-true" type="submit" value="Применить фильтр" />

@@ -132,13 +132,13 @@ namespace Web_Parent_Control.Controllers
             var client = new HttpClient();
             try
             {
-                              
-                var response = client.GetAsync($"{ip}/ParentSpy/echoGet").Result;                
-                if (!response.IsSuccessStatusCode)     // Отсутствует подключение к Parent Spy 
-                {
-                    ViewBag.Error = "Отсутствует подключение к Parent Spy!";
-                    return View();
-                }
+
+                var response = client.GetAsync($"{ip}/ParentSpy/echoGet").Result;
+                //if (!response.IsSuccessStatusCode)     // Отсутствует подключение к Parent Spy 
+                //{
+                //    ViewBag.Error = "Отсутствует подключение к Parent Spy!";
+                //    return View();
+                //}
 
                 using (var db = new MainContext())
                 {
@@ -156,12 +156,12 @@ namespace Web_Parent_Control.Controllers
                 ViewBag.Color = "red";
                 return View();
             }
-            catch (AggregateException ex) // Отсутствует подключение к Parent Spy 
-            {
-                ViewBag.Error = "Некорректный Parent Spy IP !";
-                ViewBag.Color = "red";
-                return View();
-            }            
+            //catch (AggregateException ex) // Отсутствует подключение к Parent Spy 
+            //{
+            //    ViewBag.Error = "Некорректный Parent Spy IP !";
+            //    ViewBag.Color = "red";
+            //    return View();
+            //}            
         }
 
 
@@ -218,25 +218,51 @@ namespace Web_Parent_Control.Controllers
         //    return View("Index", sites);
         //}
 
-        //[HttpPost]
-        //public IActionResult GetNewData(string period) // Фильтр по периоду
-        //{
-        //    if (period == "month")
-        //    {
-        //        var sites = _mainContext.Sites.ToList();
-        //        return View("Index", sites);
-        //    }
-        //    else if (period == "week")
-        //    {
-        //        var sites = _mainContext.Sites.Where(x => (DateTime.Now - x.Date).Days <= 7).Select(x => x).ToList();
-        //        return View("Index", sites);
-        //    }
-        //    else
-        //    {
-        //        var sites = _mainContext.Sites.Where(x => (DateTime.Now - x.Date).Days <= 1).Select(x => x).ToList();
-        //        return View("Index", sites);
-        //    }
-        //}
+        [HttpPost]
+        public IActionResult GetNewData(string period, string action) // Фильтр по периоду
+        {
+            var userName = HttpContext.User.Identity.Name;
+
+            using (var db = new MainContext())
+            {
+                var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
+                List<DTO> items = default;
+
+                if (period == "month")
+                {                    
+                    if (action == "History")
+                    {
+                        items = db.Sites.AsNoTracking().Where(x => x.UserId == userId)
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Url }).OrderByDescending(x => x.Date).ToList();
+                    }
+                    else items = db.Files.AsNoTracking().Where(x => x.UserId == userId)
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Title }).OrderByDescending(x => x.Date).ToList();
+                    return View(action, items);
+                }
+                else if (period == "week")
+                {
+                    if (action == "History")
+                    {
+                        items = db.Sites.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 7)
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Url }).OrderByDescending(x => x.Date).ToList();
+                    }
+                    else items = db.Files.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 7)
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Title }).OrderByDescending(x => x.Date).ToList();
+                    return View(action, items);                    
+                }
+                else
+                {
+                    if (action == "History")
+                    {
+                        items = db.Sites.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 1)
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Url }).OrderByDescending(x => x.Date).ToList();
+                    }
+                    else items = db.Files.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 1)
+                                    .Select(x => new DTO { Date = x.Date, Content = x.Title }).OrderByDescending(x => x.Date).ToList();
+                    return View(action, items);                  
+                }
+            }
+        }
     }    
     
 }
