@@ -2,14 +2,15 @@
 
 @model ViewModel
 
-<div style="margin-bottom: 20px;">
-    <label style="color : blue; font-weight: bolder; font-size: 30px; ">Добро пожаловать, @(Model.Username)!</label>
-</div>
-<div style="min-height: 550px;">
-<section id="content" role="main">
+
+<div >
+    <section id="content" role="main" >
+        <div style="margin-bottom: 20px;">
+            <label style="color : blue; font-weight: bolder; font-size: 30px; ">Добро пожаловать, @(Model.Username)!</label>
+        </div>
     <div class="clearfix">
         <div class="widget">
-            <div style="font-size:14px; position: relative; min-height: 400px; padding: 10px 20px;">
+                <div style="font-size:14px; position: relative; padding: 10px 20px; min-height: 300px;">
                 <div class="scroll-table">
                     <table style="border-collapse: collapse;  border-spacing: 0;">
                         <thead>
@@ -20,7 +21,7 @@
                             </tr>
                         </thead>
                     </table>
-                    <div class="scroll-table-body">
+                        <div class="scroll-table-body" style="min-height: 400px;">
                         <table style="border-collapse: collapse;  border-spacing: 0;">
                             <tbody class="dataTable">
 
@@ -52,42 +53,43 @@
         </div>
     </div>
 </section>
-
-<section id="sidebar" class="clearfix" role="complementary">
-    <aside class="widget clearfix">
-            <div style="font-size:14px; position: relative; min-height: 400px; padding: 10px 20px; justify-content: center; ">
-        @using (Html.BeginForm("GetNewData", "Home", FormMethod.Post))
-        {
-                <div>
-                    <center>
-                    @Html.RadioButton("period", "day", true)
-                        <span>за день</span> <br>
-                    @Html.RadioButton("period", "week")
-                        <span>за неделю</span> <br>
-                    @Html.RadioButton("period", "month")
-                        <span>за месяц</span><br>
-                    </center>
-                    @Html.Hidden("action", "Downloads")
-                </div>
+  <section id="sidebar" class="clearfix" role="complementary" style=" height: 400px">         
+           
+            <div style="font-size:14px; position: relative;  left: 0; top: 50%; width: 100%;  text-align: center;  font-size: 18px; ">
+       @using (Html.BeginForm("GetNewData", "Home", FormMethod.Post))
+       {
+            <div>
                 <center>
-                        <input class="btn-tr" type="submit" value="Применить фильтр" style="background: green ;  border: 1px solid black;  border-radius: 5px;" />
+                       
+                    
+                    @Html.RadioButton("period", "day", true)                        
+                    <span>за день</span> <br>                        
+                    @Html.RadioButton("period", "week")
+                    <span>за неделю</span> <br>
+                    @Html.RadioButton("period", "month")
+                    <span>за месяц</span><br>
                 </center>
-        } <br><br>
+                @Html.Hidden("action", "History")
+            </div>
+            <center>
+                      <input type="submit" value="Применить фильтр" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" />
+            </center>
+        }<br><br>
         @using (Html.BeginForm("History", "Home", FormMethod.Get))
         {
-                    <center><input class="btn-tr" type="submit" value="Журнал" style="background: green ;  border: 1px solid black;  border-radius: 5px;" /></center>
+                    <center><input type="submit" value="Журнал" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
 
         }<br>
         @using (Html.BeginForm("Downloads", "Home", FormMethod.Get))
         {
-                    <center><input class="btn-tr" type="submit" value="Загрузки" style="background: green ;  border: 1px solid black;  border-radius: 5px;" /></center>
+                    <center><input type="submit" value="Загрузки" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
         }<br>
         @using (Html.BeginForm("Logout", "Home", FormMethod.Get))
         {
-                    <center><input class="btn-tr" type="submit" value="Выход" style="background: green ;  border: 1px solid black;  border-radius: 5px;" /></center>
+                    <center><input type="submit" value="Выход" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
         }<br>
-        </div>
-    </aside>
+            </div>
+   
 </section>
 </div>
 
