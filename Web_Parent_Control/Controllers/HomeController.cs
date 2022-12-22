@@ -177,8 +177,33 @@ namespace Web_Parent_Control.Controllers
             using (var db = new MainContext())
             {
                 var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
-                var sites = db.Sites.AsNoTracking().Where(x => x.UserId == userId)
-                                    .Select(x => new DTO {Date = x.Date, Content = x.Url, Blocked = false, Site = x.Host}).OrderByDescending(x => x.Date).ToList();
+
+                var allSites = db.Sites.AsNoTracking().Where(x => x.UserId == userId).Select(x => x ).ToList();
+                var blockedItems = db.BlockedItems.AsNoTracking().Where(x => x.UserId == userId).Select(x => new {x.Site, x.Blocked}).ToList();
+                var blockedSites = allSites.Join(blockedItems,
+                                                a => a.Host,
+                                                b => b.Site,
+                                                (a, b) => new DTO
+                                                {
+                                                    Date = a.Date,
+                                                    Content = a.Url,
+                                                    Blocked = b.Blocked,
+                                                    Site = b.Site
+                                                }).ToList();
+                var unblockedItems = allSites.Select(x => x.Host).Except(blockedItems.Select(x => x.Site));
+                var unblockedSites = allSites.Join(unblockedItems,
+                                                   a => a.Host,
+                                                   b => b,
+                                                   (a, b) => new DTO
+                                                   {
+                                                       Date = a.Date,
+                                                       Content = a.Url,
+                                                       Blocked = false,
+                                                       Site = b
+                                                   }).ToList();
+
+                var sites = blockedSites.Union(unblockedSites).OrderByDescending(x => x.Date).ToList();
+                                    
                 var viewModel = new ViewModel
                 {
                     Data = sites,
@@ -197,8 +222,33 @@ namespace Web_Parent_Control.Controllers
             using (var db = new MainContext())
             {
                 var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
-                var files = db.Files.AsNoTracking().Where(x => x.UserId == userId)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Title, Blocked = false, Site = x.Url}).OrderByDescending(x => x.Date).ToList();
+
+                var allFiles = db.Files.AsNoTracking().Where(x => x.UserId == userId).Select(x => x).ToList();
+                var blockedItems = db.BlockedItems.AsNoTracking().Where(x => x.UserId == userId).Select(x => new { x.Site, x.Blocked }).ToList();
+                var blockedFiles = allFiles.Join(blockedItems,
+                                                a => (new Uri(a.Url)).Host,
+                                                b => b.Site,
+                                                (a, b) => new DTO
+                                                {
+                                                    Date = a.Date,
+                                                    Content = a.Title,
+                                                    Blocked = b.Blocked,
+                                                    Site = b.Site
+                                                }).ToList();
+                var unblockedItems = allFiles.Select(x => (new Uri(x.Url)).Host).Except(blockedItems.Select(x => x.Site));
+                var unblockedFiles = allFiles.Join(unblockedItems,
+                                                   a => (new Uri(a.Url)).Host,
+                                                   b => b,
+                                                   (a, b) => new DTO
+                                                   {
+                                                       Date = a.Date,
+                                                       Content = a.Title,
+                                                       Blocked = false,
+                                                       Site = b
+                                                   }).ToList();
+
+                var files = blockedFiles.Union(unblockedFiles).OrderByDescending(x => x.Date).ToList();
+
                 var viewModel = new ViewModel
                 {
                     Data = files,
@@ -214,9 +264,9 @@ namespace Web_Parent_Control.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
-        [HttpPost("/block/{title?}"), Authorize]
-        public IActionResult Block(string title) // Отмечаем сайты на блокировку
-        {
+        [HttpPost("/block"), Authorize]
+        public IActionResult Block(string site) // Отмечаем сайты на блокировку
+        {           
             using (var db = new MainContext())
             {
                 var userName = HttpContext.User.Identity.Name;
@@ -225,30 +275,20 @@ namespace Web_Parent_Control.Controllers
                 var request = new HttpRequestMessage
                 {
                     Method = HttpMethod.Post,
-                    RequestUri = new Uri($"{user.ClientPC}/ParentSpy/block/{title}")
+                    RequestUri = new Uri($"{user.ClientPC}/ParentSpy/block/{site}")
                 };
 
                 using (var response = client.Send(request))
                 {
                     response.EnsureSuccessStatusCode();
-                    var blockedSiteContents = db.Sites.AsNoTracking().Where(x => x.Host == title) //Заносим в таблицу блокированных сайтов
-                                                                     .Select(x => new BlockedItem
-                                                                     {
-                                                                         Date = x.Date,
-                                                                         Content = x.Url,
-                                                                         Blocked = true,
-                                                                         Site = x.Host
-                                                                     }).ToList();
-                    var blockedFileContents = db.Files.AsNoTracking().Where(x => x.Url == title)
-                                                                    .Select(x => new BlockedItem
-                                                                    {
-                                                                        Date = x.Date,
-                                                                        Content = x.Title,
-                                                                        Blocked = true,
-                                                                        Site = x.Url
-                                                                    }).ToList();
-                    var blockedContents = blockedSiteContents.Union(blockedFileContents).ToList();
-                    db.BulkInsert(blockedContents);
+                    var deletedItem = new BlockedItem  // Сохранение сайта в таблице блокированных сайтов
+                    {
+                        Blocked = true,
+                        Site = site,
+                        UserId = user.Id
+                    };
+                    db.BlockedItems.Add(deletedItem);
+                    db.SaveChanges();
                 }
             }
 
@@ -256,21 +296,29 @@ namespace Web_Parent_Control.Controllers
         }
 
         [HttpPost("/unblock/{title?}"), Authorize]
-        public IActionResult Unblock(string title) // Отмечаем сайты на разблокировку
+        public IActionResult Unblock(string site) // Отмечаем сайты на разблокировку
         {
+            
+            using (var db = new MainContext())
+            {
+                var userName = HttpContext.User.Identity.Name;
+                var user = db.Users.FirstOrDefault(p => p.Login == userName);
+                var client = new HttpClient();
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri($"{user.ClientPC}/ParentSpy/unblock/{site}")
+                };
 
-            //var site = _mainContext.Sites.SingleOrDefault(x => x.Id == id);
+                using (var response = client.Send(request))
+                {
+                    response.EnsureSuccessStatusCode();
+                    var blockedItems = db.BlockedItems.AsNoTracking().Where(x => x.Site == site).ToList(); //Удаление из таблицы блокированных сайтов
+                                                                     
+                    db.BulkDelete(blockedItems);                  
+                }
+            }
 
-            //if (site.Flag == false)
-            //{
-            //    site.Flag = true;
-            //}
-            //else site.Flag = false;
-
-            //_mainContext.SaveChangesAsync();
-
-            //var sites = _mainContext.Sites.Select(x => x).ToList();
-            //return View("Index", sites);
             return Ok();
         }
 

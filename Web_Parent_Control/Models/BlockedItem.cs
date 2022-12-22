@@ -5,9 +5,9 @@ namespace Web_Parent_Control.Models
     public class BlockedItem
     {
         public Guid Id { get; set; } = Guid.NewGuid();
-        public DateTime Date { get; set; }
-        public string Content { get; set; }
+        public DateTime BlockDate { get; set; } = DateTime.Now;       
         public bool Blocked { get; set; }
         public string Site { get; set; }
+        public Guid? UserId { get; set; } 
     }
 }
