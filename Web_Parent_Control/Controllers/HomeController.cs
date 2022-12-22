@@ -14,10 +14,14 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 using System.Security.Claims;
+using System.Text.Json;
+using System.Text;
 using Web_Parent_Control.Connector;
 using Web_Parent_Control.Database;
 using Web_Parent_Control.Models;
 using SiteModel = Web_Parent_Control.Models.SiteModel;
+using System.Security.Policy;
+using EFCore.BulkExtensions;
 
 namespace Web_Parent_Control.Controllers
 {
@@ -213,19 +217,41 @@ namespace Web_Parent_Control.Controllers
         [HttpPost("/block/{title?}"), Authorize]
         public IActionResult Block(string title) // Отмечаем сайты на блокировку
         {
+            using (var db = new MainContext())
+            {
+                var userName = HttpContext.User.Identity.Name;
+                var user = db.Users.FirstOrDefault(p => p.Login == userName);
+                var client = new HttpClient();
+                var request = new HttpRequestMessage
+                {
+                    Method = HttpMethod.Post,
+                    RequestUri = new Uri($"{user.ClientPC}/ParentSpy/block/{title}")
+                };
 
-            //var site = _mainContext.Sites.SingleOrDefault(x => x.Id == id);
+                using (var response = client.Send(request))
+                {
+                    response.EnsureSuccessStatusCode();
+                    var blockedSiteContents = db.Sites.AsNoTracking().Where(x => x.Host == title) //Заносим в таблицу блокированных сайтов
+                                                                     .Select(x => new BlockedItem
+                                                                     {
+                                                                         Date = x.Date,
+                                                                         Content = x.Url,
+                                                                         Blocked = true,
+                                                                         Site = x.Host
+                                                                     }).ToList();
+                    var blockedFileContents = db.Files.AsNoTracking().Where(x => x.Url == title)
+                                                                    .Select(x => new BlockedItem
+                                                                    {
+                                                                        Date = x.Date,
+                                                                        Content = x.Title,
+                                                                        Blocked = true,
+                                                                        Site = x.Url
+                                                                    }).ToList();
+                    var blockedContents = blockedSiteContents.Union(blockedFileContents).ToList();
+                    db.BulkInsert(blockedContents);
+                }
+            }
 
-            //if (site.Flag == false)
-            //{
-            //    site.Flag = true;
-            //}
-            //else site.Flag = false;
-
-            //_mainContext.SaveChangesAsync();
-
-            //var sites = _mainContext.Sites.Select(x => x).ToList();
-            //return View("Index", sites);
             return Ok();
         }
 
