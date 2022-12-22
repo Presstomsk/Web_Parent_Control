@@ -9,6 +9,7 @@ namespace Web_Parent_Control.Database
         public DbSet<SiteModel> Sites { get; set; }
         public DbSet<FileModel> Files { get; set; }
         public DbSet<User> Users { get; set; }
+        public DbSet<BlockedItem> BlockedItems { get; set; }
 
         public MainContext() 
         {
