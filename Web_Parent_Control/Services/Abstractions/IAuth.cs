@@ -6,5 +6,6 @@ namespace Web_Parent_Control.Services.Abstractions
     {
         void Authorization(string login, ControllerBase controller);
         void Logout(ControllerBase controller);
+        string GetHash(string input);
     }
 }

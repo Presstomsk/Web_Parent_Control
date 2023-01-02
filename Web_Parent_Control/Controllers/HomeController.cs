@@ -37,7 +37,8 @@ namespace Web_Parent_Control.Controllers
         [HttpPost]
         public IActionResult Authorization(string returnUrl, string username, string password) // Аутентификация
         {
-            var user = _db.GetUserFromDb(username, password); // Существует ли пользователь
+            var passHash = _auth.GetHash(password); //Хешируем пароль MD5 
+            var user = _db.GetUserFromDb(username, passHash); // Существует ли пользователь
             if (user == null)
             {
                 ViewBag.Error = "Данного пользователя не существует";
@@ -118,7 +119,8 @@ namespace Web_Parent_Control.Controllers
 
                 var response = client.GetAsync($"{ip}/ParentSpy/echoGet").Result;
 
-                _db.AddUserToDb(username, password, ip); //Добавление нового пользователя в БД                   
+                var passHash = _auth.GetHash(password); //Хешируем пароль MD5 
+                _db.AddUserToDb(username, passHash, ip); //Добавление нового пользователя в БД                   
 
                 ViewBag.Error = "Регистрация пройдена. Авторизуйтесь!";
                 ViewBag.Color = "green";
