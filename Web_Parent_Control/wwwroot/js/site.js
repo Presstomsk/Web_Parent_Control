@@ -4,7 +4,7 @@ container.addEventListener('click', function () {
     if (event.target.className == 'btn-false') {       
         const request = new XMLHttpRequest(); 
         let data = "site=" + event.target.title;
-        request.open("POST", `https://localhost:44309/block`);
+        request.open("POST", `/block`);
         request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         request.send(data);
         let items = document.querySelectorAll('.btn-false');
@@ -24,7 +24,7 @@ container.addEventListener('click', function () {
     {
         const request = new XMLHttpRequest();
         let data = "site=" + event.target.title;
-        request.open("POST", `https://localhost:44309/unblock`);
+        request.open("POST", `/unblock`);
         request.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
         request.send(data);
         let items = document.querySelectorAll('.btn-true');

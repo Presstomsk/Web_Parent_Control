@@ -1,27 +1,16 @@
-﻿using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Net;
 using System.Net.Http;
-using System.Net.Sockets;
-using System.Security.Claims;
-using System.Text.Json;
-using System.Text;
 using Web_Parent_Control.Connector;
 using Web_Parent_Control.Database;
 using Web_Parent_Control.Models;
 using SiteModel = Web_Parent_Control.Models.SiteModel;
-using System.Security.Policy;
-using EFCore.BulkExtensions;
+using Web_Parent_Control.Services.Abstractions;
 
 namespace Web_Parent_Control.Controllers
 {
@@ -29,10 +18,14 @@ namespace Web_Parent_Control.Controllers
     public class HomeController : Controller
     {             
         private readonly ILogger<HomeController> _logger;
+        private readonly IAuth _auth;
+        private readonly IDb _db;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(ILogger<HomeController> logger, IAuth auth, IDb db)
         {
-            _logger = logger;            
+            _logger = logger;
+            _auth = auth;
+            _db = db;
         }
 
         [HttpGet]
@@ -44,67 +37,55 @@ namespace Web_Parent_Control.Controllers
         [HttpPost]
         public IActionResult Authorization(string returnUrl, string username, string password) // Аутентификация
         {
-            using (var db = new MainContext())
+            var user = _db.GetUserFromDb(username, password); // Существует ли пользователь
+            if (user == null)
             {
-                var user = db.Users.FirstOrDefault(p => p.Login == username && p.Password == password); // Существует ли пользователь
-                if (user == null)
-                {
-                    ViewBag.Error = "Данного пользователя не существует";
-                    ViewBag.Color = "red";
-                    return View();
-                    
-                }
-                if (HttpContext.User.Identity != null && HttpContext.User.Identity.IsAuthenticated) // Аутентифицирован ли пользователь
-                {
-                    if (HttpContext.User.Identity.Name == username)
-                    {
-                        return Redirect("~/Home/History");
-                    }
-                    else
-                    {
-                        HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-                    }
-                }
-                var siteCount = db.Sites.AsNoTracking().Where(x => x.UserId == user.Id).Count(); // Существуют ли старые данные в бд пользователя
-                var fileCount = db.Files.AsNoTracking().Where(x => x.UserId == user.Id).Count();
-                var crud = new Crud();
-                if (siteCount > 0 || fileCount > 0)
-                {                    
-                    var connector = new HttpConnector();
-                    var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites");
-                    var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");                   
-                    
-                    crud.UpdateDB(user, allSites, allFiles);                   
-                }
-                else 
-                {                   
-                    var connector = new HttpConnector();
-                    var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites");
-                    var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");
-                   
-                    crud.CreateDB(user, allSites, allFiles);                    
-                }                              
-                var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.Login) };
-                var claimsIdentity = new ClaimsIdentity(claims, "Cookies");
-                HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-                return Redirect(returnUrl ?? "~/Home/History");
+                ViewBag.Error = "Данного пользователя не существует";
+                ViewBag.Color = "red";
+                return View();
+
             }
+            if (HttpContext.User.Identity != null && HttpContext.User.Identity.IsAuthenticated) // Аутентифицирован ли пользователь
+            {
+                if (HttpContext.User.Identity.Name == username)
+                {
+                    return Redirect("~/Home/History");
+                }
+                else
+                {
+                    _auth.Logout(this);
+                }
+            }
+            var siteCount = _db.GetSiteCount(user.Id); // Существуют ли старые данные в бд пользователя
+            var fileCount = _db.GetFileCount(user.Id);
+            var crud = new Crud();
+            var connector = new HttpConnector();
+            var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites");
+            var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");
+
+            if (siteCount > 0 || fileCount > 0)
+            {
+                crud.UpdateDB(user, allSites, allFiles);
+            }
+            else
+            {
+                crud.CreateDB(user, allSites, allFiles);
+            }
+            _auth.Authorization(user.Login, this);
+            return Redirect(returnUrl ?? "~/Home/History");
         }
 
         [HttpGet, Authorize]
         public IActionResult Logout() //Выход
         {
             var userName = HttpContext.User.Identity.Name;
-            User user;
-
-            using (var db = new MainContext())
-            {
-                user = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName);
-            }
+            
+            var user = _db.GetUserFromDb(userName);
            
             new Crud().DeleteDB(user);
-           
-            HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            _auth.Logout(this);
+
             return View("Authorization");
         }
 
@@ -123,49 +104,32 @@ namespace Web_Parent_Control.Controllers
                 ViewBag.Color = "red";
                 return View();
             }
-            using (var db = new MainContext())
+            var user = _db.GetUserFromDb(username); // Пользователь уже существует
+            if (user != null)
             {
-                var user = db.Users.FirstOrDefault(p => p.Login == username); // Пользователь уже существует
-                if (user != null)
-                {
-                    ViewBag.Error = "Данный логин зарегистрирован!";
-                    ViewBag.Color = "red";
-                    return View();
-                }
+                ViewBag.Error = "Данный логин зарегистрирован!";
+                ViewBag.Color = "red";
+                return View();
             }
+
             var client = new HttpClient();
             try
             {
 
                 var response = client.GetAsync($"{ip}/ParentSpy/echoGet").Result;
-                //if (!response.IsSuccessStatusCode)     // Отсутствует подключение к Parent Spy 
-                //{
-                //    ViewBag.Error = "Отсутствует подключение к Parent Spy!";
-                //    return View();
-                //}
 
-                using (var db = new MainContext())
-                {
-                    db.AddRange(new User {Login = username, Password = password, ClientPC = ip }); //Добавление нового пользователя в БД
-                    db.SaveChangesAsync();
+                _db.AddUserToDb(username, password, ip); //Добавление нового пользователя в БД                   
 
-                    ViewBag.Error = "Регистрация пройдена. Авторизуйтесь!";
-                    ViewBag.Color = "green";
-                    return View("Authorization");
-                }
+                ViewBag.Error = "Регистрация пройдена. Авторизуйтесь!";
+                ViewBag.Color = "green";
+                return View("Authorization");
             }
             catch (InvalidOperationException ex) // Проверка формата ip Parent Spy
             {
                 ViewBag.Error = "Некорректный Parent Spy IP !";
                 ViewBag.Color = "red";
                 return View();
-            }
-            //catch (AggregateException ex) // Отсутствует подключение к Parent Spy 
-            //{
-            //    ViewBag.Error = "Некорректный Parent Spy IP !";
-            //    ViewBag.Color = "red";
-            //    return View();
-            //}            
+            }                  
         }
 
 
@@ -174,44 +138,14 @@ namespace Web_Parent_Control.Controllers
         {
             var userName = HttpContext.User.Identity.Name;
 
-            using (var db = new MainContext())
+            var sites = _db.GetActualSites(userName);
+
+            var viewModel = new ViewModel
             {
-                var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
-
-                var allSites = db.Sites.AsNoTracking().Where(x => x.UserId == userId).Select(x => x ).ToList();
-                var blockedItems = db.BlockedItems.AsNoTracking().Where(x => x.UserId == userId).Select(x => new {x.Site, x.Blocked}).ToList();
-                var blockedSites = allSites.Join(blockedItems,
-                                                a => a.Host,
-                                                b => b.Site,
-                                                (a, b) => new DTO
-                                                {
-                                                    Date = a.Date,
-                                                    Content = a.Url,
-                                                    Blocked = b.Blocked,
-                                                    Site = b.Site
-                                                }).ToList();
-                var unblockedItems = allSites.Select(x => x.Host).Except(blockedItems.Select(x => x.Site));
-                var unblockedSites = allSites.Join(unblockedItems,
-                                                   a => a.Host,
-                                                   b => b,
-                                                   (a, b) => new DTO
-                                                   {
-                                                       Date = a.Date,
-                                                       Content = a.Url,
-                                                       Blocked = false,
-                                                       Site = b
-                                                   }).ToList();
-
-                var sites = blockedSites.Union(unblockedSites).OrderByDescending(x => x.Date).ToList();
-                                    
-                var viewModel = new ViewModel
-                {
-                    Data = sites,
-                    Username = userName
-                };
-                return View(viewModel);
-            }           
-
+                Data = sites,
+                Username = userName
+            };
+            return View(viewModel);
         }
 
         [HttpGet, Authorize]
@@ -219,43 +153,14 @@ namespace Web_Parent_Control.Controllers
         {
             var userName = HttpContext.User.Identity.Name;
 
-            using (var db = new MainContext())
+            var files = _db.GetActualFiles(userName);
+
+            var viewModel = new ViewModel
             {
-                var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
-
-                var allFiles = db.Files.AsNoTracking().Where(x => x.UserId == userId).Select(x => x).ToList();
-                var blockedItems = db.BlockedItems.AsNoTracking().Where(x => x.UserId == userId).Select(x => new { x.Site, x.Blocked }).ToList();
-                var blockedFiles = allFiles.Join(blockedItems,
-                                                a => (new Uri(a.Url)).Host,
-                                                b => b.Site,
-                                                (a, b) => new DTO
-                                                {
-                                                    Date = a.Date,
-                                                    Content = a.Title,
-                                                    Blocked = b.Blocked,
-                                                    Site = b.Site
-                                                }).ToList();
-                var unblockedItems = allFiles.Select(x => (new Uri(x.Url)).Host).Except(blockedItems.Select(x => x.Site));
-                var unblockedFiles = allFiles.Join(unblockedItems,
-                                                   a => (new Uri(a.Url)).Host,
-                                                   b => b,
-                                                   (a, b) => new DTO
-                                                   {
-                                                       Date = a.Date,
-                                                       Content = a.Title,
-                                                       Blocked = false,
-                                                       Site = b
-                                                   }).ToList();
-
-                var files = blockedFiles.Union(unblockedFiles).OrderByDescending(x => x.Date).ToList();
-
-                var viewModel = new ViewModel
-                {
-                    Data = files,
-                    Username = userName
-                };
-                return View(viewModel);               
-            }
+                Data = files,
+                Username = userName
+            };
+            return View(viewModel);
         }      
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -266,30 +171,21 @@ namespace Web_Parent_Control.Controllers
 
         [HttpPost("/block"), Authorize]
         public IActionResult Block(string site) // Отмечаем сайты на блокировку
-        {           
-            using (var db = new MainContext())
+        {
+            var userName = HttpContext.User.Identity.Name;
+            var user = _db.GetUserFromDb(userName);
+            var client = new HttpClient();
+            var request = new HttpRequestMessage
             {
-                var userName = HttpContext.User.Identity.Name;
-                var user = db.Users.FirstOrDefault(p => p.Login == userName);
-                var client = new HttpClient();
-                var request = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Post,
-                    RequestUri = new Uri($"{user.ClientPC}/ParentSpy/block/{site}")
-                };
+                Method = HttpMethod.Post,
+                RequestUri = new Uri($"{user.ClientPC}/ParentSpy/block/{site}")
+            };
 
-                using (var response = client.Send(request))
-                {
-                    response.EnsureSuccessStatusCode();
-                    var deletedItem = new BlockedItem  // Сохранение сайта в таблице блокированных сайтов
-                    {
-                        Blocked = true,
-                        Site = site,
-                        UserId = user.Id
-                    };
-                    db.BlockedItems.Add(deletedItem);
-                    db.SaveChanges();
-                }
+            using (var response = client.Send(request))
+            {
+                response.EnsureSuccessStatusCode();
+
+                _db.AddToBlockList(site, user); // Сохранение сайта в таблице блокированных сайтов                   
             }
 
             return Ok();
@@ -298,25 +194,19 @@ namespace Web_Parent_Control.Controllers
         [HttpPost("/unblock/{title?}"), Authorize]
         public IActionResult Unblock(string site) // Отмечаем сайты на разблокировку
         {
-            
-            using (var db = new MainContext())
+            var userName = HttpContext.User.Identity.Name;
+            var user = _db.GetUserFromDb(userName);
+            var client = new HttpClient();
+            var request = new HttpRequestMessage
             {
-                var userName = HttpContext.User.Identity.Name;
-                var user = db.Users.FirstOrDefault(p => p.Login == userName);
-                var client = new HttpClient();
-                var request = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Post,
-                    RequestUri = new Uri($"{user.ClientPC}/ParentSpy/unblock/{site}")
-                };
+                Method = HttpMethod.Post,
+                RequestUri = new Uri($"{user.ClientPC}/ParentSpy/unblock/{site}")
+            };
 
-                using (var response = client.Send(request))
-                {
-                    response.EnsureSuccessStatusCode();
-                    var blockedItems = db.BlockedItems.AsNoTracking().Where(x => x.Site == site).ToList(); //Удаление из таблицы блокированных сайтов
-                                                                     
-                    db.BulkDelete(blockedItems);                  
-                }
+            using (var response = client.Send(request))
+            {
+                response.EnsureSuccessStatusCode();
+                _db.RemoveFromBlockList(site); //Удаление из таблицы блокированных сайтов                                  
             }
 
             return Ok();
@@ -329,45 +219,11 @@ namespace Web_Parent_Control.Controllers
 
             using (var db = new MainContext())
             {
-                var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == userName)?.Id;
-                List<DTO> items = default;
-                ViewModel viewModel = default;
+                var userId = _db.GetUserFromDb(userName)?.Id;                            
 
-                if (period == "month")
-                {
-                    if (action == "History")
-                    {
-                        items = db.Sites.AsNoTracking().Where(x => x.UserId == userId)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Url, Blocked = false, Site =x.Host  }).OrderByDescending(x => x.Date).ToList();
-                    }
-                    else
-                    {
-                        items = db.Files.AsNoTracking().Where(x => x.UserId == userId)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Title, Blocked = false, Site = x.Url  }).OrderByDescending(x => x.Date).ToList();
-                    }                   
-                }
-                else if (period == "week")
-                {
-                    if (action == "History")
-                    {
-                        items = db.Sites.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 7)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Url, Blocked = false, Site = x.Host }).OrderByDescending(x => x.Date).ToList();
-                    }
-                    else items = db.Files.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 7)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Title, Blocked = false, Site = x.Url }).OrderByDescending(x => x.Date).ToList();                                 
-                }
-                else
-                {
-                    if (action == "History")
-                    {
-                        items = db.Sites.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 1)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Url, Blocked = false , Site = x.Host }).OrderByDescending(x => x.Date).ToList();
-                    }
-                    else items = db.Files.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= 1)
-                                    .Select(x => new DTO { Date = x.Date, Content = x.Title, Blocked = false, Site = x.Url }).OrderByDescending(x => x.Date).ToList();                                     
-                }
+                var items = _db.GetFilteredData(userId, period, action);
 
-                viewModel = new ViewModel
+                var viewModel = new ViewModel
                 {
                     Data = items,
                     Username = userName
