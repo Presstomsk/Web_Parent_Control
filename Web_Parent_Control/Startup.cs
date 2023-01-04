@@ -1,18 +1,10 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.DataProtection.AuthenticatedEncryption;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Web_Parent_Control.Controllers;
 using Web_Parent_Control.Database;
 using Web_Parent_Control.Services;
 using Web_Parent_Control.Services.Abstractions;
@@ -36,6 +28,7 @@ namespace Web_Parent_Control
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme).AddCookie(options => options.LoginPath = "/Home/Authorization");
             services.AddSingleton<IAuth, Auth>();
             services.AddSingleton<IDb, Db>();
+            services.AddSingleton<IToken, Token>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

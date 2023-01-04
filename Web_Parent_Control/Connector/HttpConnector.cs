@@ -7,7 +7,7 @@ namespace Web_Parent_Control.Connector
 {
     public class HttpConnector
     {
-        public T GetData<T>(string url)
+        public T GetData<T>(string url, string token)
         {
             var client = new HttpClient();
             var request = new HttpRequestMessage
@@ -15,6 +15,9 @@ namespace Web_Parent_Control.Connector
                 Method = HttpMethod.Post,
                 RequestUri = new Uri(url)
             };
+
+            request.Headers.Add("Authorization", "Bearer " + token); 
+
             using (var response = client.Send(request))
             {
                 response.EnsureSuccessStatusCode();

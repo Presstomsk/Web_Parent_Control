@@ -20,12 +20,14 @@ namespace Web_Parent_Control.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly IAuth _auth;
         private readonly IDb _db;
+        private readonly IToken _token;
 
-        public HomeController(ILogger<HomeController> logger, IAuth auth, IDb db)
+        public HomeController(ILogger<HomeController> logger, IAuth auth, IDb db, IToken token)
         {
             _logger = logger;
             _auth = auth;
             _db = db;
+            _token = token;
         }
 
         [HttpGet]
@@ -60,9 +62,12 @@ namespace Web_Parent_Control.Controllers
             var siteCount = _db.GetSiteCount(user.Id); // Существуют ли старые данные в бд пользователя
             var fileCount = _db.GetFileCount(user.Id);
             var crud = new Crud();
+            
+            var token = _token.GenerateToken(); //генерация токена            
+
             var connector = new HttpConnector();
-            var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites");
-            var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files");
+            var allSites = connector.GetData<List<SiteModel>>($"{user.ClientPC}/ParentSpy/sites", token);
+            var allFiles = connector.GetData<List<FileModel>>($"{user.ClientPC}/ParentSpy/files", token);
 
             if (siteCount > 0 || fileCount > 0)
             {
@@ -206,8 +211,12 @@ namespace Web_Parent_Control.Controllers
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri($"{user.ClientPC}/ParentSpy/block/{site}")
+                RequestUri = new Uri($"{user.ClientPC}/ParentSpy/block/{site}")                
             };
+
+            var token = _token.GenerateToken(); //генерация токена
+
+            request.Headers.Add("Authorization", "Bearer " + token); //установка токена в заголовок запроса
 
             using (var response = client.Send(request))
             {
@@ -230,6 +239,10 @@ namespace Web_Parent_Control.Controllers
                 Method = HttpMethod.Post,
                 RequestUri = new Uri($"{user.ClientPC}/ParentSpy/unblock/{site}")
             };
+
+            var token = _token.GenerateToken(); //генерация токена
+
+            request.Headers.Add("Authorization", "Bearer " + token); //установка токена в заголовок запроса
 
             using (var response = client.Send(request))
             {
