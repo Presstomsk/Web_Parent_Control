@@ -94,6 +94,10 @@
         {
                     <center><input type="submit" value="Загрузки" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
         }<br>
+        @using (Html.BeginForm("Blocked", "Home", FormMethod.Get))
+        {
+                    <center><input type="submit" value="Блокированные сайты" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
+        }<br>
         @using (Html.BeginForm("Logout", "Home", FormMethod.Get))
         {
                     <center><input type="submit" value="Выход" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>

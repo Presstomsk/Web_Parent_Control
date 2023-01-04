@@ -1,0 +1,97 @@
+﻿@using Web_Parent_Control.Controllers
+
+@model ViewModel
+
+<div>
+    <section id="content" role="main">
+        <div style="margin-bottom: 20px;">
+            <label style="color : blue; font-weight: bolder; font-size: 30px; ">Добро пожаловать, @(Model.Username)!</label>
+        </div>
+        <div class="clearfix">
+            <div class="widget">
+                <div style="font-size:14px; position: relative; padding: 10px 20px; min-height: 300px;">
+                    <div class="scroll-table">
+                        <table style="border-collapse: collapse;  border-spacing: 0;">
+                            <thead>
+                                <tr>
+                                    <th class="col00"><center>Date</center></th>
+                                    <th class="col11"><center>Site</center></th>
+                                    <th class="col22"><center></center></th>
+                                </tr>
+                            </thead>
+                        </table>
+                        <div class="scroll-table-body" style="min-height: 400px;">
+                            <table style="border-collapse: collapse;  border-spacing: 0;">
+                                <tbody class="dataTable">
+
+                                    @foreach (var site in Model.Data)
+                                    {
+                                        <tr>
+                                            <td class="col0"><center>@site.Date</center></td>
+                                            <td class="col1"><center><label>@site.Content</label></center></td>
+                                            <td class="col2">
+                                                <center>
+                                                    @if (@site.Blocked == false)
+                                                    {
+                                                        <input class="btn-false" type="button" value="Блокировать сайт" title=@site.Site />
+                                                    }
+                                                    else
+                                                    {
+                                                        <input class="btn-true" type="button" value="Разблокировать сайт" title=@site.Site />
+                                                    }
+                                                </center>
+                                            </td>
+                                        </tr>
+                                    }
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="sidebar" class="clearfix" role="complementary" style=" height: 400px">
+
+        <div style="font-size:14px; position: relative;  left: 0; top: 50%; width: 100%;  text-align: center;  font-size: 18px; ">
+            @using (Html.BeginForm("GetNewData", "Home", FormMethod.Post))
+            {
+                <div>
+                    <center>
+                        @Html.RadioButton("period", "day", true)
+                        <span>за день</span> <br>
+                        @Html.RadioButton("period", "week")
+                        <span>за неделю</span> <br>
+                        @Html.RadioButton("period", "month")
+                        <span>за месяц</span><br>
+                    </center>
+                    @Html.Hidden("action", "Blocked")
+                </div>
+                <center>
+                    <input type="submit" value="Применить фильтр" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" />
+                </center>
+            }<br><br>
+            @using (Html.BeginForm("History", "Home", FormMethod.Get))
+            {
+                <center><input type="submit" value="Журнал" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
+
+            }<br>
+            @using (Html.BeginForm("Downloads", "Home", FormMethod.Get))
+            {
+                <center><input type="submit" value="Загрузки" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
+            }<br>
+            @using (Html.BeginForm("Blocked", "Home", FormMethod.Get))
+            {
+                <center><input type="submit" value="Блокированные сайты" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
+            }<br>
+            @using (Html.BeginForm("Logout", "Home", FormMethod.Get))
+            {
+                <center><input type="submit" value="Выход" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
+            }<br>
+        </div>
+
+    </section>
+</div>
+

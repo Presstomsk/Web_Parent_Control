@@ -107,6 +107,18 @@ namespace Web_Parent_Control.Services
             }
         }
 
+        public List<DTO> GetBlockedSites(string username)
+        {
+            using (var db = new MainContext())
+            {
+                var userId = db.Users.AsNoTracking().FirstOrDefault(x => x.Login == username)?.Id;
+
+                var blockedItems = db.BlockedItems.AsNoTracking().Where(x => x.UserId == userId).Select(x => new { x.BlockDate, x.Site, x.Blocked }).ToList();
+
+                return blockedItems.Select(x => new DTO { Date = x.BlockDate, Content = x.Site, Blocked = x.Blocked, Site = x.Site }).ToList();
+            }
+        }
+
         public int GetFileCount(Guid userId)
         {
             using (var db = new MainContext())
@@ -115,7 +127,7 @@ namespace Web_Parent_Control.Services
             }
         }
 
-        public List<DTO> GetFilteredData(Guid? userId, string period, string action)
+        public List<DTO> GetFilteredData(User user, string period, string action)
         {
             var dict = new Dictionary<string, int>
             {
@@ -127,13 +139,20 @@ namespace Web_Parent_Control.Services
             {
                 if (action == "History")
                 {
-                    return db.Sites.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= dict[period])
-                                .Select(x => new DTO { Date = x.Date, Content = x.Url, Blocked = false, Site = x.Host }).OrderByDescending(x => x.Date).ToList();
+                    var sites = GetActualSites(user.Login);
+                    return sites.Where(x => (DateTime.Now - x.Date).Days <= dict[period]).OrderByDescending(x => x.Date).ToList();
                 }
-                else return db.Files.AsNoTracking().AsEnumerable().Where(x => x.UserId == userId && (DateTime.Now - x.Date).Days <= dict[period])
-                                .Select(x => new DTO { Date = x.Date, Content = x.Title, Blocked = false, Site = x.Url }).OrderByDescending(x => x.Date).ToList();
+                else if (action == "Downloads")
+                {
+                    var files = GetActualFiles(user.Login);
+                    return files.Where(x => (DateTime.Now - x.Date).Days <= dict[period]).OrderByDescending(x => x.Date).ToList();
+                }
+                else 
+                {
+                    var blocked = GetBlockedSites(user.Login);
+                    return blocked.Where(x => (DateTime.Now - x.Date).Days <= dict[period]).OrderByDescending(x => x.Date).ToList();
+                }               
             }
-
         }
 
         public int GetSiteCount(Guid userId)

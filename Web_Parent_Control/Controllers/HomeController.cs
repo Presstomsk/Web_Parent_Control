@@ -214,16 +214,16 @@ namespace Web_Parent_Control.Controllers
             return Ok();
         }
 
-        [HttpPost]
+        [HttpPost, Authorize]
         public IActionResult GetNewData(string period, string action) // Фильтр по периоду
         {
             var userName = HttpContext.User.Identity.Name;
 
             using (var db = new MainContext())
             {
-                var userId = _db.GetUserFromDb(userName)?.Id;                            
+                var user = _db.GetUserFromDb(userName);                            
 
-                var items = _db.GetFilteredData(userId, period, action);
+                var items = _db.GetFilteredData(user, period, action);
 
                 var viewModel = new ViewModel
                 {
@@ -233,6 +233,21 @@ namespace Web_Parent_Control.Controllers
 
                 return View(action, viewModel);
             }
+        }
+
+        [HttpGet, Authorize]
+        public IActionResult Blocked() // Список заблокированных сайтов
+        {
+            var userName = HttpContext.User.Identity.Name;
+
+            var sites = _db.GetBlockedSites(userName);
+
+            var viewModel = new ViewModel
+            {
+                Data = sites,
+                Username = userName
+            };
+            return View(viewModel);
         }
     }    
     
