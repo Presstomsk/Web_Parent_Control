@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using Web_Parent_Control.Database;
 using Web_Parent_Control.Models;
 using Web_Parent_Control.Services.Abstractions;
@@ -185,6 +186,16 @@ namespace Web_Parent_Control.Services
             {
                 var blockedItems = db.BlockedItems.AsNoTracking().Where(x => x.Site == site).ToList();
                 db.BulkDelete(blockedItems);
+            }
+        }
+
+        public void UpdateUserInDb(string userName, string hashPass)
+        {
+            using (var db = new MainContext())
+            {
+                var user = db.Users.FirstOrDefault(x => x.Login == userName);
+                user.Password = hashPass;
+                db.SaveChanges();
             }
         }
     }

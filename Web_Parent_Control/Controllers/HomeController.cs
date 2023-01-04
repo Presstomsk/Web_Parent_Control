@@ -91,6 +91,32 @@ namespace Web_Parent_Control.Controllers
         }
 
         [HttpGet]
+        public IActionResult Change() // Форма изменения данных пользователя
+        {
+            return View();
+        }
+
+        [HttpPost, Authorize]
+        public IActionResult Change(string password, string repeatPassword) //Изменение данных пользователя
+        {
+            if (password != repeatPassword) //Пароль неккоректный
+            {
+                ViewBag.Error = "Пароли не идентичны!";
+                ViewBag.Color = "red";
+                return View();
+            }
+
+            var userName = HttpContext.User.Identity.Name;        
+
+            var passHash = _auth.GetHash(password); //Хешируем пароль MD5            
+            _db.UpdateUserInDb(userName,passHash); // Сохранение изменений в бд
+
+            ViewBag.Error = "Пароль изменен!";
+            ViewBag.Color = "green";
+            return View();          
+        }
+
+        [HttpGet]
         public IActionResult Registration() // Форма регистрации
         {
             return View();

@@ -1,0 +1,73 @@
+﻿@using Web_Parent_Control.Controllers
+
+<div>
+    <section id="content" role="main">
+        <div style="min-height: 600px; display: flex;  align-items: center;  justify-content: center; ">
+            <center>
+                <div style=" min-height: 350px; min-width: 400px; background-color: #EEDDFF; border: 6px solid #7922CC; border-radius: 25px;  display: flex;  align-items: center;  justify-content: center; ">
+                    <form asp-controller="Home" asp-action="Change" method="post">
+
+                        <label style="text-align: center; font-weight: 500;">Изменение пароля</label><br><br>
+                        <div class="errorMessage" style="color: @ViewBag.Color;">@ViewBag.Error</div><br>
+                        <ul style="min-width: 300px;">
+
+                            <li>
+                                <label for="password">Password</label>
+                                <input type="password" name="password" id="password" placeholder="Password" required maxlength="20" style="float: right;" />
+                            </li>
+                            <br>
+
+                            <li>
+                                <label for="repeatPassword">Rep. Password</label>
+                                <input type="password" name="repeatPassword" id="repeatPassword" placeholder="Repeat Password" required maxlength="20" style="float: right;" />
+                            </li>
+                            <br>
+
+                        </ul><br>
+
+                        <div class="buttons">
+                            <input type="submit" name="registration" value="Изменить пароль" /><br>
+                        </div>
+                        <br>
+
+                    </form>
+                </div>
+            </center>
+        </div>
+       
+    </section>
+
+    <section id="sidebar" class="clearfix" role="complementary" style=" height: 400px">
+
+        <div style="font-size:14px; position: relative;  left: 0; top: 50%; width: 100%;  text-align: center;  font-size: 18px; ">           
+            @using (Html.BeginForm("History", "Home", FormMethod.Get))
+            {
+                <center><input type="submit" value="Журнал" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
+
+            }<br>
+            @using (Html.BeginForm("Downloads", "Home", FormMethod.Get))
+            {
+                <center><input type="submit" value="Загрузки" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
+            }<br>
+            @using (Html.BeginForm("Blocked", "Home", FormMethod.Get))
+            {
+                <center><input type="submit" value="Блокированные сайты" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
+            }<br>
+            @using (Html.BeginForm("Change", "Home", FormMethod.Get))
+            {
+                <center><input type="submit" value="Изменить пароль" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
+            }<br>
+            @using (Html.BeginForm("Logout", "Home", FormMethod.Get))
+            {
+                <center><input type="submit" value="Выход" style="background: green ;  border: 1px solid black;  border-radius: 5px; width: 250px;" /></center>
+            }<br>
+        </div>
+
+    </section>
+</div>
+
+
+
+
+
+

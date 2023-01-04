@@ -17,5 +17,6 @@ namespace Web_Parent_Control.Services.Abstractions
         void AddToBlockList(string site, User user);
         void RemoveFromBlockList(string site);
         List<DTO> GetFilteredData(User user, string period, string action);
+        void UpdateUserInDb(string userName, string hashPass);
     }
 }
