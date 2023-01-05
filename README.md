@@ -14,4 +14,4 @@
 
 Список всех заблокированных сайтов сохраняется в БД и доступен в приложении (пункт меню приложения "Блокированные сайты").
 
-![4](https://github.com/Presstomsk/Web_Parent_Control/blob/master/jpg/Blocking.png)
+![4](https://github.com/Presstomsk/Web_Parent_Control/blob/master/jpg/BlockedSites.jpg)
