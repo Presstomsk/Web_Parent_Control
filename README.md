@@ -1,4 +1,4 @@
-# Web_Parent_Control
+# SAFETY
 
 Веб-приложение родительского контроля на ASP.NET Core MVC. 
 
