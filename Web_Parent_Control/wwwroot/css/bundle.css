@@ -1,0 +1,217 @@
+.scroll-table-body {
+    height: 300px;
+    overflow-x: auto;
+    margin-top: 0px;
+    margin-bottom: 20px;
+    border-bottom: 0px solid #eee;
+}
+
+.col00 {
+    width: 19.7%;
+}
+
+.col11 {
+    width: 55px;
+}
+
+.col22 {
+    width: 21.4%;
+}
+
+.col0 {
+    width: 20%;
+    
+}
+.col1 {
+    width: 60px;
+    
+}
+.col2 {
+    width: 20%;
+    
+}
+
+.scroll-table table {
+    width: 100%;
+    table-layout: fixed;
+    border: 3px solid orangered;
+}
+
+.scroll-table thead th {
+    font-weight: bold;
+    text-align: left;
+    border: none;
+    padding: 15px 15px;
+    background: orangered;
+    font-size: 14px;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;    
+}
+
+.scroll-table tbody td {
+    text-align: left;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+    padding: 10px 15px;
+    font-size: 14px;
+    vertical-align: top;
+    border: 1px solid black;
+}
+
+.scroll-table tbody tr:nth-child(even) {
+    background: #f3f3f3;
+}
+
+/* Стили для скролла */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+
+::-webkit-scrollbar-thumb {
+    box-shadow: inset 0 0 6px rgba(0,0,0,0.3);
+}
+
+.btn-false {
+    background: lightcoral;
+    border: 1px solid black;
+    border-radius: 5px;    
+}
+    .btn-false:hover {
+        background: red;
+        border: 1px solid black;
+        border-radius: 5px;
+    }
+.btn-true {
+    background: lightgreen;
+    border: 1px solid black;
+    border-radius: 5px;
+}
+
+    .btn-true:hover {
+        background: green;
+        border: 1px solid black;
+        border-radius: 5px;
+    }
+
+
+
+body.custom-background {
+    background-color: #353535;
+    background-image: url("http://presstomsk.ru/wp-content/uploads/2016/12/nebo_zvezdy_svet_temnyy_61737_1920x1080.jpg");
+    background-position: center top;
+    background-size: auto;
+    background-repeat: repeat-y;
+    background-attachment: fixed;
+}
+
+#wrapper {
+    margin-top: 2.5em;
+    padding: .5em .5em 0;
+}
+.container {
+    max-width: 1320px;
+    width: 94%;
+    background: #fff;
+    margin: 0 auto;    
+    box-sizing: border-box;
+}
+#header {
+    background-image: url(http://presstomsk.ru/wp-content/uploads/2017/07/header2.png);
+}
+
+#header {
+    padding: 2.5em;
+}
+#logo {
+    float: left;
+    max-width: 100%;
+}
+    #logo .site-title {
+        display: inline-block;
+        padding: .15em 0;
+        font-size: 2.7em;
+        color: #fff;
+        font-family: 'Oswald',Tahoma,Verdana,Arial;
+    }
+        #logo .site-title a:link, #logo .site-title a:visited {
+            color: #fff;
+        }
+
+a, a:link, a:visited {
+    color: #b00;
+    text-decoration: none;
+}
+#logo .site-description {
+    margin-top: .4em;
+    color: #eee;
+}
+
+.clearfix::before, .clearfix::after {
+    content: " ";
+    display: table;
+}
+
+html, body, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, fieldset, legend, caption, tfoot, article, aside, canvas, details, embed, figure, figcaption, footer, header, hgroup, menu, nav, output, ruby, section, summary, time, mark, audio, video {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    font: inherit;
+    vertical-align: baseline;
+}
+.clearfix::after {
+    clear: both;
+}
+#wrap {
+    clear: both;
+    padding-top: .5em;    
+    box-sizing: border-box;
+}
+#content {
+    float: left;
+    width: 70%;
+    padding-right: .5em;   
+    box-sizing: border-box;
+}
+.widget {
+    margin: 0 0 .5em;
+    padding: .8em;
+    color: #333;
+    background: #eee;
+    border-bottom: 2px solid #ddd;    
+    word-wrap: break-word;
+}
+#sidebar {
+    float: right;
+    width: 30%;
+}
+#footer-wrap {
+    margin-bottom: 2.5em;
+    padding: 0 .5em .5em;
+}
+#footer {
+    background-image: url(http://presstomsk.ru/wp-content/uploads/2016/08/cropped-cropped-presstomsk.ru_-e1476896696739.png);
+}
+
+#footer {
+    padding: .8em 1.5em;
+    color: #fff;    
+}
+    #footer #footer-text {
+        float: right;
+        font-size: .9em;
+        line-height: 1.5em;
+    }
+
+    li::marker{
+        float:left;
+    }
+
+
+
+  
+
