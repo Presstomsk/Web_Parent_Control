@@ -16,4 +16,6 @@
 
 ![4](https://github.com/Presstomsk/Web_Parent_Control/blob/master/jpg/BlockedSites.jpg)
 
-При желании, пользователь может сменить пароль (пункт меню приложения "")
+При желании, пользователь может сменить пароль (пункт меню приложения "Изменить пароль").
+
+![5](https://github.com/Presstomsk/Web_Parent_Control/blob/master/jpg/ChangePass.jpg)
